@@ -2,7 +2,6 @@ package com.example.community.entity;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 
 import com.example.community.dto.JobBoardDTO;
 import com.example.community.dto.check.BoardCategory;
