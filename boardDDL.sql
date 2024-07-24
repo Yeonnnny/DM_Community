@@ -40,7 +40,7 @@ CREATE TABLE job_board_reported (
     report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (report_id),
     FOREIGN KEY (board_id) REFERENCES job_board(board_id), -- job_board 테이블의 board_id를 FK로 참조
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 SELECT * FROM job_board_reported;
 
@@ -59,7 +59,7 @@ CREATE TABLE job_board_recruit (
     member_email VARCHAR(200),
     PRIMARY KEY (recruit_id),
     FOREIGN KEY (board_id) REFERENCES job_board(board_id), -- job_board 테이블의 board_id를 FK로 참조
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 SELECT * FROM job_board_recruit;
 
@@ -80,8 +80,28 @@ CREATE TABLE job_board_reply (
     like_count INT DEFAULT 0,
     PRIMARY KEY (reply_id),
     FOREIGN KEY (board_id) REFERENCES job_board(board_id), -- job_board 테이블의 board_id를 FK로 참조
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 SELECT * FROM job_board_reply;
 
 
+
+-- 취업 게시판, 댓글 좋아요 Table
+
+DROP TABLE IF EXISTS job_like;
+
+CREATE TABLE job_like (
+    like_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    member_id VARCHAR(30) NOT NULL,
+    board_id BIGINT,
+    reply_id BIGINT,
+    CONSTRAINT fk_member FOREIGN KEY (member_id) REFERENCES members(member_id),
+    CONSTRAINT fk_board FOREIGN KEY (board_id) REFERENCES job_board(board_id),
+    CONSTRAINT fk_reply FOREIGN KEY (reply_id) REFERENCES replies(reply_id),
+    CONSTRAINT chk_one_null CHECK (
+        (board_id IS NOT NULL AND reply_id IS NULL) OR
+        (board_id IS NULL AND reply_id IS NOT NULL)
+    ) -- board_id 나 reply_id는 둘 중에 하나는 무조건 null이어야 함
+);
+
+SELECT * FROM job_like;
