@@ -2,6 +2,8 @@ package com.example.community.dto;
 
 import java.time.LocalDateTime;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.example.community.dto.check.BoardCategory;
 import com.example.community.entity.JobBoardEntity;
 
@@ -28,12 +30,13 @@ public class JobBoardDTO {
     private LocalDateTime updateDate;
     private int hitCount;
     private int likeCount;
+    private MultipartFile uploadFile;
     private String originalFileName;
     private String savedFileName;
     private LocalDateTime deadline;
     private int limitNumber;
     private int currentNumber;
-    private int reported;
+    private boolean reported;
 
     public static JobBoardDTO toDTO(JobBoardEntity entity, String memberId){
         return JobBoardDTO.builder()
@@ -51,7 +54,7 @@ public class JobBoardDTO {
                 .deadline(entity.getDeadline())
                 .limitNumber(entity.getLimitNumber())
                 .currentNumber(entity.getCurrentNumber())
-                .reported(entity.getReported())
+                .reported(entity.isReported())
                 .build();
 
     }
