@@ -18,7 +18,7 @@ CREATE TABLE job_board (
     deadline TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     limit_number INT DEFAULT 0,
     current_number INT DEFAULT 0,
-    reported INT DEFAULT 0,
+    reported INT DEFAULT 0 CHECK(reported IN (0,1)),
     PRIMARY KEY (board_id),
     FOREIGN KEY (member_id) REFERENCES member_table(member_id) -- member 테이블의 member_id를 FK로 참조
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
