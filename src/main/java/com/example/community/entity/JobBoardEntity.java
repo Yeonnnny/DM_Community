@@ -79,7 +79,7 @@ public class JobBoardEntity {
     private int currentNumber;
     
     @Column(name = "reported")
-    private int reported;
+    private boolean reported;
 
 
     public static JobBoardEntity toEntity(JobBoardDTO dto, MemberEntity memberEntity){
@@ -98,7 +98,7 @@ public class JobBoardEntity {
                 .deadline(dto.getDeadline())
                 .limitNumber(dto.getLimitNumber())
                 .currentNumber(dto.getCurrentNumber())
-                .reported(dto.getReported())
+                .reported(dto.isReported())
                 .build();
 
     }
