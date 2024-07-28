@@ -22,41 +22,17 @@ import lombok.ToString;
 @Builder
 public class JobBoardDTO {
     private Long boardId;
-    private String memberId;
-    private BoardCategory category;
-    private String title;
-    private String content;
-    private LocalDateTime createDate;
-    private LocalDateTime updateDate;
-    private int hitCount;
-    private int likeCount;
-    private MultipartFile uploadFile;
-    private String originalFileName;
-    private String savedFileName;
     private LocalDateTime deadline;
     private int limitNumber;
     private int currentNumber;
-    private boolean reported;
 
-    public static JobBoardDTO toDTO(JobBoardEntity entity, String memberId){
+    public static JobBoardDTO toDTO(JobBoardEntity entity){
         return JobBoardDTO.builder()
                 .boardId(entity.getBoardId())
-                .memberId(memberId)
-                .category(entity.getCategory())
-                .title(entity.getTitle())
-                .content(entity.getContent())
-                .createDate(entity.getCreateDate())
-                .updateDate(entity.getUpdateDate())
-                .hitCount(entity.getHitCount())
-                .likeCount(entity.getLikeCount())
-                .originalFileName(entity.getOriginalFileName())
-                .savedFileName(entity.getSavedFileName())
                 .deadline(entity.getDeadline())
                 .limitNumber(entity.getLimitNumber())
                 .currentNumber(entity.getCurrentNumber())
-                .reported(entity.isReported())
                 .build();
-
     }
     
 }

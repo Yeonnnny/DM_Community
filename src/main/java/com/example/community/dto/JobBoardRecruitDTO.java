@@ -23,12 +23,13 @@ public class JobBoardRecruitDTO {
     private String memberPhone;
     private String memberEmail;
 
-    public static JobBoardRecruitDTO toDTO (JobBoardRecruitEntity entity, Long boardId){
+    public static JobBoardRecruitDTO toDTO (JobBoardRecruitEntity entity, Long boardId, String memberId){
         return JobBoardRecruitDTO.builder()
             .recruitId(entity.getRecruitId())
             .boardId(boardId)
-            .memberId(entity.getMemberId())
+            .memberId(memberId)
             .memberGroup(entity.getMemberGroup())
+            .memberPhone(entity.getMemberPhone())
             .memberEmail(entity.getMemberEmail())
             .build();
     }

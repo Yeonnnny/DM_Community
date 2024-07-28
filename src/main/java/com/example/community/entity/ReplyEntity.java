@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CurrentTimestamp;
 
-import com.example.community.dto.JobBoardReplyDTO;
+import com.example.community.dto.ReplyDTO;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,7 +28,7 @@ import lombok.ToString;
 @Builder
 @Entity
 @Table(name = "job_board_reply")
-public class JobBoardReplyEntity {
+public class ReplyEntity {
     @Id
     @Column(name="reply_id")
     private Long replyId;
@@ -36,13 +36,15 @@ public class JobBoardReplyEntity {
     //FK
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
-    private JobBoardEntity jobBoardEntity;
-
+    private BoardEntity boardEntity;
+    
     @Column(name = "parent_reply_id")
     private Long parentReplyId;
-
-    @Column(name = "member_id", nullable = false)
-    private String memberId;
+    
+    //FK
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private MemberEntity memberEntity;
 
     @Column(name = "content", nullable = false)
     private String content;
@@ -57,12 +59,12 @@ public class JobBoardReplyEntity {
     @Column(name = "like_count")
     private int likeCount;
 
-    public static JobBoardReplyEntity toEntity(JobBoardReplyDTO dto, JobBoardEntity jobBoardEntity){
-        return JobBoardReplyEntity.builder()
+    public static ReplyEntity toEntity(ReplyDTO dto, BoardEntity boardEntity, MemberEntity memberEntity){
+        return ReplyEntity.builder()
             .replyId(dto.getReplyId())
-            .jobBoardEntity(jobBoardEntity)
+            .boardEntity(boardEntity)
             .parentReplyId(dto.getParentReplyId())
-            .memberId(dto.getMemberId())
+            .memberEntity(memberEntity)
             .content(dto.getContent())
             .createDate(dto.getCreateDate())
             .updateDate(dto.getUpdateDate())

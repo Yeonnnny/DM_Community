@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import com.example.community.dto.JobBoardReportedDTO;
+import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.check.ReportCategory;
 
 import jakarta.persistence.Column;
@@ -31,7 +31,7 @@ import lombok.ToString;
 @Builder
 @Entity
 @Table(name = "job_board_reported")
-public class JobBoardReportedEntity {
+public class BoardReportEntity {
     @Id
     @Column(name = "report_id")
     private Long reportId;
@@ -39,7 +39,7 @@ public class JobBoardReportedEntity {
     // FK
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
-    private JobBoardEntity jobBoardEntity;
+    private BoardEntity boardEntity;
 
     @Column(name = "member_id", nullable = false)
     private String memberId;
@@ -54,10 +54,10 @@ public class JobBoardReportedEntity {
     @CreationTimestamp
     private LocalDateTime reportDate;
 
-    public static JobBoardReportedEntity toEntity (JobBoardReportedDTO dto, JobBoardEntity jobBoardEntity){
-        return JobBoardReportedEntity.builder()
+    public static BoardReportEntity toEntity (BoardReportDTO dto, BoardEntity boardEntity){
+        return BoardReportEntity.builder()
             .reportId(dto.getReportId())
-            .jobBoardEntity(jobBoardEntity)
+            .boardEntity(boardEntity)
             .memberId(dto.getMemberId())
             .category(dto.getCategory())
             .reason(dto.getReason())

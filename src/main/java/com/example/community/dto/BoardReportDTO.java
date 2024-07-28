@@ -3,7 +3,7 @@ package com.example.community.dto;
 import java.time.LocalDateTime;
 
 import com.example.community.dto.check.ReportCategory;
-import com.example.community.entity.JobBoardReportedEntity;
+import com.example.community.entity.BoardReportEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +18,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-public class JobBoardReportedDTO {
+public class BoardReportDTO {
     private Long reportId;
     private Long boardId;
     private String memberId;
@@ -26,8 +26,8 @@ public class JobBoardReportedDTO {
     private String reason;
     private LocalDateTime reportDate;
 
-    public static JobBoardReportedDTO toDTO (JobBoardReportedEntity entity, Long boardId){
-        return JobBoardReportedDTO.builder()
+    public static BoardReportDTO toDTO (BoardReportEntity entity, Long boardId){
+        return BoardReportDTO.builder()
             .reportId(entity.getReportId())
             .boardId(boardId)
             .memberId(entity.getMemberId())

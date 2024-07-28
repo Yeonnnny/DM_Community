@@ -6,6 +6,8 @@ import com.example.community.dto.JobBoardRecruitDTO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -26,7 +28,9 @@ import lombok.ToString;
 @Entity
 @Table(name = "job_board_recruit")
 public class JobBoardRecruitEntity {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "recruit_id")
     private Long recruitId;
 
@@ -34,9 +38,11 @@ public class JobBoardRecruitEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
     private JobBoardEntity jobBoardEntity;
-
-    @Column(name = "member_id", nullable = false)
-    private String memberId;
+    
+    // FK
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private MemberEntity memberEntity;
 
     @Column(name = "member_group", nullable = false)
     private String memberGroup;
@@ -47,12 +53,13 @@ public class JobBoardRecruitEntity {
     @Column(name = "member_email")
     private String memberEmail;
 
-    public static JobBoardRecruitEntity toEntity (JobBoardRecruitDTO dto, JobBoardEntity jobBoardEntity){
+    public static JobBoardRecruitEntity toEntity (JobBoardRecruitDTO dto, JobBoardEntity jobBoardEntity, MemberEntity memberEntity){
         return JobBoardRecruitEntity.builder()
             .recruitId(dto.getRecruitId())
             .jobBoardEntity(jobBoardEntity)
-            .memberId(dto.getMemberId())
+            .memberEntity(memberEntity)
             .memberGroup(dto.getMemberGroup())
+            .memberPhone(dto.getMemberPhone())
             .memberEmail(dto.getMemberEmail())
             .build();
     }

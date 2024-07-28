@@ -2,7 +2,7 @@ package com.example.community.dto;
 
 import java.time.LocalDateTime;
 
-import com.example.community.entity.JobBoardReplyEntity;
+import com.example.community.entity.ReplyEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +17,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-public class JobBoardReplyDTO {
+public class ReplyDTO {
     private Long replyId;
     private Long boardId;
     private Long parentReplyId;
@@ -27,12 +27,12 @@ public class JobBoardReplyDTO {
     private LocalDateTime updateDate;
     private int likeCount;
 
-    public static JobBoardReplyDTO toDTO(JobBoardReplyEntity entity, Long boardId){
-        return JobBoardReplyDTO.builder()
+    public static ReplyDTO toDTO(ReplyEntity entity, Long boardId, String memberId){
+        return ReplyDTO.builder()
             .replyId(entity.getReplyId())
             .boardId(boardId)
             .parentReplyId(entity.getParentReplyId())
-            .memberId(entity.getMemberId())
+            .memberId(memberId)
             .content(entity.getContent())
             .createDate(entity.getCreateDate())
             .updateDate(entity.getUpdateDate())
