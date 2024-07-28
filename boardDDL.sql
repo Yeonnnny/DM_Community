@@ -1,12 +1,13 @@
 
--- 취업 게시판 게시글 Table
+-- 게시글 Table
 
-DROP TABLE IF EXISTS job_board;
+DROP TABLE IF EXISTS board;
 
-CREATE TABLE job_board (
+CREATE TABLE board (
     board_id BIGINT NOT NULL AUTO_INCREMENT,
     member_id VARCHAR(30) NOT NULL,
-    category VARCHAR(50) NOT NULL CHECK (category IN ('code', 'project', 'activity', 'recruit')),
+    member_group VARCHAR(20) NOT NULL,
+    category VARCHAR(50) NOT NULL CHECK (category IN ('code', 'project', 'activity', 'recruit', 'free', 'group','info')),
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
     create_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -15,23 +16,38 @@ CREATE TABLE job_board (
     like_count INT DEFAULT 0,
     original_file_name VARCHAR(200),
     saved_file_name VARCHAR(200),
+    reported INT DEFAULT 0 CHECK(reported IN (0,1)),
+    PRIMARY KEY (board_id),
+    FOREIGN KEY (member_id) REFERENCES member(member_id) -- member 테이블의 member_id를 FK로 참조
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+SELECT * FROM board;
+
+
+
+-- 취업 게시판 Table
+
+DROP TABLE IF EXISTS job_board;
+
+CREATE TABLE job_board (
+    board_id BIGINT NOT NULL,
     deadline TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     limit_number INT DEFAULT 0,
     current_number INT DEFAULT 0,
-    reported INT DEFAULT 0 CHECK(reported IN (0,1)),
     PRIMARY KEY (board_id),
-    FOREIGN KEY (member_id) REFERENCES member_table(member_id) -- member 테이블의 member_id를 FK로 참조
+    FOREIGN KEY (board_id) REFERENCES board(board_id) -- board 테이블의 board_id를 FK로 참조
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SELECT * FROM job_board;
 
 
 
--- 취업 게시판 게시글 신고 Table
 
-DROP TABLE IF EXISTS job_board_reported;
+-- 게시글 신고 Table
 
-CREATE TABLE job_board_reported (
+DROP TABLE IF EXISTS board_report;
+
+CREATE TABLE board_report(
     report_id BIGINT NOT NULL AUTO_INCREMENT,
     board_id BIGINT NOT NULL,
     member_id VARCHAR(30) NOT NULL, -- 신고 당한 게시글 작성자 ID
@@ -39,10 +55,11 @@ CREATE TABLE job_board_reported (
     reason TEXT,
     report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (report_id),
-    FOREIGN KEY (board_id) REFERENCES job_board(board_id), -- job_board 테이블의 board_id를 FK로 참조
-);
+    FOREIGN KEY (board_id) REFERENCES board(board_id) -- board 테이블의 board_id를 FK로 참조
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-SELECT * FROM job_board_reported;
+SELECT * FROM board_report;
+
 
 
 
@@ -59,17 +76,19 @@ CREATE TABLE job_board_recruit (
     member_email VARCHAR(200),
     PRIMARY KEY (recruit_id),
     FOREIGN KEY (board_id) REFERENCES job_board(board_id), -- job_board 테이블의 board_id를 FK로 참조
-);
+    FOREIGN KEY (member_id) REFERENCES member(member_id) -- member 테이블의 member_id를 FK로 참조
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SELECT * FROM job_board_recruit;
 
 
 
--- 취업 게시판 댓글 Table
 
-DROP TABLE IF EXISTS job_board_reply;
+-- 댓글 Table
 
-CREATE TABLE job_board_reply (
+DROP TABLE IF EXISTS reply;
+
+CREATE TABLE reply (
     reply_id BIGINT NOT NULL AUTO_INCREMENT,
     board_id BIGINT NOT NULL,
     parent_reply_id BIGINT,
@@ -79,29 +98,30 @@ CREATE TABLE job_board_reply (
     update_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     like_count INT DEFAULT 0,
     PRIMARY KEY (reply_id),
-    FOREIGN KEY (board_id) REFERENCES job_board(board_id), -- job_board 테이블의 board_id를 FK로 참조
-);
+    FOREIGN KEY (board_id) REFERENCES board(board_id) -- board 테이블의 board_id를 FK로 참조
+    FOREIGN KEY (member_id) REFERENCES member(member_id) -- member 테이블의 member_id를 FK로 참조
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-SELECT * FROM job_board_reply;
+SELECT * FROM reply;
 
 
 
--- 취업 게시판, 댓글 좋아요 Table
+-- 좋아요 Table
 
-DROP TABLE IF EXISTS job_like;
+DROP TABLE IF EXISTS likes;
 
-CREATE TABLE job_like (
+CREATE TABLE likes (
     like_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     member_id VARCHAR(30) NOT NULL,
     board_id BIGINT,
     reply_id BIGINT,
-    CONSTRAINT fk_member FOREIGN KEY (member_id) REFERENCES members(member_id),
-    CONSTRAINT fk_board FOREIGN KEY (board_id) REFERENCES job_board(board_id),
-    CONSTRAINT fk_reply FOREIGN KEY (reply_id) REFERENCES replies(reply_id),
-    CONSTRAINT chk_one_null CHECK (
+    FOREIGN KEY (member_id) REFERENCES member(member_id),
+    FOREIGN KEY (board_id) REFERENCES board(board_id),
+    FOREIGN KEY (reply_id) REFERENCES reply(reply_id),
+    CHECK (
         (board_id IS NOT NULL AND reply_id IS NULL) OR
         (board_id IS NULL AND reply_id IS NOT NULL)
     ) -- board_id 나 reply_id는 둘 중에 하나는 무조건 null이어야 함
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-SELECT * FROM job_like;
+SELECT * FROM likes;
