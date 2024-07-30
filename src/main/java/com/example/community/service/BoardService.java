@@ -15,7 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.community.dto.JobBoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.check.BoardCategory;
+import com.example.community.dto.display.BoardListDTO;
 import com.example.community.entity.JobBoardEntity;
+import com.example.community.entity.BoardEntity;
 import com.example.community.entity.BoardReportEntity;
 import com.example.community.entity.MemberEntity;
 import com.example.community.repository.BoardReportRepository;
@@ -173,39 +175,95 @@ public class BoardService {
     // ========================= 게시글 목록 ========================
 
     /**
-     * 파라미터에 해당하는 게시글 DTO 리스트로 반환하는 함수
+     * 페이지 설정 함수
+     * @param page
+     * @param pageLimit
+     * @return
+     */
+    private Pageable createPageRequest (int page, int pageLimit){
+        return PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "createDate"));
+    }
+
+    /**
+     * activity/recruit 게시판 데이터 조회 (repository에서 BoardListDTO로 바로 매핑해서 가져옴)
+     * @param category
+     * @param searchWord
+     * @param pageable
+     * @return
+     */
+    private Page<BoardListDTO> fetchJobBoards(BoardCategory category, String searchWord, Pageable pageable) {
+        return jobBoardRepository.findBoardListByCategoryAndTitleContainingAndReportedIsFalse(category, searchWord, pageable);
+    }
+
+    /**
+     * category가 activity/recruit에 해당하는 게시글 목록 DTO를 리스트로 반환하는 함수
      * @param category
      * @param pageable
      * @param searchWord
      * @return
      */
-    public Page<JobBoardDTO> selectAll(BoardCategory category, Pageable pageable, String searchWord) {
+    public Page<BoardListDTO> selectActivityOrRecruitBoards(BoardCategory category, Pageable pageable, String searchWord) {
         int page = pageable.getPageNumber()-1; // 사용자가 요청한 페이지 (페이지 위치값 0부터 시작하므로 -1)
-        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "createDate"));
-
-        // 카테고리에 해당하는 게시글들 중 제목에 searchWord가 들어간 게시글들 가져오기
-        Page<JobBoardEntity> entityList = jobBoardRepository.findByCategoryTitleContainingAndReportedIsFalse(category, searchWord, pageRequest);
-
-        // DTO로 변환하여 반환
-        return entityList.map(entity -> JobBoardDTO.builder()
-                .boardId(entity.getBoardId())
-                .memberId(entity.getMemberEntity().getMemberId())
-                .category(entity.getCategory())
-                .title(entity.getTitle())
-                .content(entity.getContent())
-                .createDate(entity.getCreateDate())
-                .updateDate(entity.getUpdateDate())
-                .hitCount(entity.getHitCount())
-                .likeCount(entity.getLikeCount())
-                .originalFileName(entity.getOriginalFileName())
-                .savedFileName(entity.getSavedFileName())
-                .deadline(entity.getDeadline())
-                .limitNumber(entity.getLimitNumber())
-                .currentNumber(entity.getCurrentNumber())
-                .reported(entity.isReported())
-                .build());
-    
+        Pageable pageRequest = createPageRequest(page, pageLimit); // 페이지 설정
+        
+        // JobBoardEntities 중에 카테고리에 해당하는 게시글들 중 제목에 searchWord가 들어간 게시글들 BoardListDTO로 반환
+        // (activity나 recruit인 게시글이 생성될 때, deadline, limitNumber, currentNumber 정보가 없어도 무조건 JobBoardEntity에 값이 추가됨)
+        return fetchJobBoards(category,searchWord, pageRequest);
+        
     }
+    
+    /**
+     * group 게시판 데이터 조회 (repository에서 BoardListDTO로 바로 매핑해서 가져옴)
+     * @param category
+     * @param searchWord
+     * @param pageable
+     * @return
+     */
+    private Page<BoardListDTO> fetchGroupBoards(String userGroup, String searchWord, Pageable pageable) {
+        return boardRepository.findBoardListByMemberGroupAndTitleContaining(userGroup, searchWord, pageable);
+    }
+    
+    /**
+     * category가 group에 해당하는 게시글 목록 DTO를 반환하는 함수
+     */
+    public Page<BoardListDTO> selectGroupBoards(String userGroup, Pageable pageable, String searchWord) {
+        int page = pageable.getPageNumber()-1; // 사용자가 요청한 페이지 (페이지 위치값 0부터 시작하므로 -1)
+        Pageable pageRequest = createPageRequest(page, pageLimit); // 페이지 설정
+        
+        // group 카테고리의 BoardEntities 중 
+        // memberGroup이 userGroup에 해당하는 게시글들 중 
+        // 제목에 searchWord가 들어간 게시글들 BoardListDTO로 반환
+        return fetchGroupBoards(userGroup,searchWord, pageRequest);
+        
+    }
+
+
+    /**
+     * code/project/free/info 게시판 데이터 조회 (repository에서 BoardListDTO로 바로 매핑해서 가져옴)
+     * @param category
+     * @param searchWord
+     * @param pageable
+     * @return
+     */
+    private Page<BoardListDTO> fetchBoards(BoardCategory category, String searchWord, Pageable pageable) {
+        return boardRepository.findBoardListByCategoryAndTitleContaining(category, searchWord, pageable);
+    }
+
+    /**
+     * category가 activity/recruit/group이 아닌 카테고리에 해당하는 게시글 목록 DTO를 리스트로 반환하는 함수
+     * @param category
+     * @param pageable
+     * @param searchWord
+     * @return
+     */
+    public Page<BoardListDTO> selectOtherCategoryBoards(BoardCategory category, Pageable pageable, String searchWord) {
+        int page = pageable.getPageNumber()-1; // 사용자가 요청한 페이지 (페이지 위치값 0부터 시작하므로 -1)
+        Pageable pageRequest = createPageRequest(page, pageLimit); // 페이지 설정
+        
+        // 카테고리에 해당하는 BoardEntities 중 제목에 searchWord가 들어간 게시글들 BoardListDTO로 반환
+        return fetchBoards(category, searchWord, pageRequest);
+    }
+
 
     
     // ======================== 게시글 신고 ========================
@@ -241,6 +299,12 @@ public class BoardService {
         // 해당 게시글의 reported 컬럼 true로 변경
         updateRportedCount(dto.getBoardId());
     }
+
+
+
+
+
+
 
 
 
