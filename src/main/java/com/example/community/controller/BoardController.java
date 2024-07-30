@@ -18,6 +18,7 @@ import org.springframework.util.FileCopyUtils;
 import com.example.community.dto.JobBoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.check.BoardCategory;
+import com.example.community.dto.display.BoardListDTO;
 import com.example.community.service.BoardService;
 import com.example.community.util.PageNavigator;
 
@@ -48,7 +49,7 @@ public class BoardController {
 
     // 페이지 당 글의 개수
     @Value("${user.board.pageLimit}")
-    int pageLimit; // 한 페이지 당 게시글 개수
+    int pageLimit; // 한 페이지 당 게시글 개수 (9개)
 
 
     // ======================== 게시글 목록 ========================
@@ -65,7 +66,8 @@ public class BoardController {
      * @return
      */
     @GetMapping("job/boardList")
-    public String boardList(@RequestParam(name = "category") String ctgr, 
+    public String boardList(@RequestParam(name = "category") String ctgr,
+                            @RequestParam(name = "userGroup") String userGroup, // 로그인한 사용자의 기수
                             @PageableDefault(page=1) Pageable pageable, // 페이징 해주는 객체, 요청한 페이지가 없으면 1로 세팅
                             @RequestParam(name = "searchWord", defaultValue = "") String searchWord ,
                             Model model) {
@@ -73,8 +75,15 @@ public class BoardController {
         BoardCategory category = BoardCategory.valueOf(ctgr); 
         
         // Pageination
-        // category에 해당하는 게시글들 List 형태로 가져오기
-        Page<JobBoardDTO> list = boardService.selectAll(category, pageable,searchWord);
+        // category에 따른 게시글 DTO를 List 형태로 가져오기
+        Page<BoardListDTO> list;
+        if (category == BoardCategory.activity || category == BoardCategory.recruit) {
+            list = boardService.selectActivityOrRecruitBoards(category, pageable, searchWord);
+        }else if(category == BoardCategory.group){
+            list = boardService.selectGroupBoards(userGroup, pageable, searchWord);
+        }else{
+            list =  boardService.selectOtherCategoryBoards(category, pageable,searchWord);
+        }
 
         int totalPages = (int)list.getTotalPages();
         int page = pageable.getPageNumber();
