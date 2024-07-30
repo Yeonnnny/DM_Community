@@ -23,6 +23,7 @@ import lombok.ToString;
 public class BoardDTO {
     private Long boardId;
     private String memberId;
+    private String memberGroup;
     private BoardCategory category;
     private String title;
     private String content;
@@ -45,6 +46,7 @@ public class BoardDTO {
         return BoardDTO.builder()
                 .boardId(entity.getBoardId())
                 .memberId(memberId)
+                .memberGroup(entity.getMemberGroup())
                 .category(entity.getCategory())
                 .title(entity.getTitle())
                 .content(entity.getContent())
