@@ -50,6 +50,9 @@ public class BoardEntity {
     @JoinColumn(name = "member_id")
     private MemberEntity memberEntity;
 
+    @Column(name = "member_group", nullable = false)
+    private String memberGroup;
+
     @Column(name = "category", nullable = false)
     @Enumerated(EnumType.STRING)
     private BoardCategory category;
@@ -101,6 +104,7 @@ public class BoardEntity {
         return BoardEntity.builder()
                 .boardId(dto.getBoardId())
                 .memberEntity(memberEntity)
+                .memberGroup(dto.getMemberGroup())
                 .category(dto.getCategory())
                 .title(dto.getTitle())
                 .content(dto.getContent())
