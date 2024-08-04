@@ -1,7 +1,5 @@
 package com.example.community.service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -12,11 +10,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.community.dto.JobBoardDTO;
+import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.check.BoardCategory;
 import com.example.community.dto.display.BoardListDTO;
-import com.example.community.entity.JobBoardEntity;
 import com.example.community.entity.BoardEntity;
 import com.example.community.entity.BoardReportEntity;
 import com.example.community.entity.MemberEntity;
@@ -35,7 +32,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final JobBoardRepository jobBoardRepository;
     private final MemberRepository memberRepository;
-    private final BoardReportRepository jobBoardReportedRepository;
+    private final BoardReportRepository boardReportedRepository;
 
 
     // 첨부 파일 경로 요청
@@ -51,11 +48,11 @@ public class BoardService {
     // ======================== 기본 CRUD ========================
 
     /**
-     * DB에 게시글 저장하는 함수
+     * DB에 게시글 저장하는 함수 (only board 테이블에만)
      * @param dto
      * @return
      */
-    public void insertOne(JobBoardDTO boardDTO){
+    public void insertOne(BoardDTO boardDTO){
         // 작성자 엔티티
         MemberEntity memberEntity = memberRepository.findById(boardDTO.getMemberId()).get();
 
@@ -72,8 +69,8 @@ public class BoardService {
         }
 
         // 게시글 DTO -> 엔티티 변환 후 DB 저장
-        JobBoardEntity boardEntity = JobBoardEntity.toEntity(boardDTO, memberEntity);
-        jobBoardRepository.save(boardEntity);
+        BoardEntity boardEntity = BoardEntity.toEntity(boardDTO, memberEntity);
+        boardRepository.save(boardEntity);
     }
 
 
@@ -82,15 +79,14 @@ public class BoardService {
      * @param boardId
      * @return
      */
-    public JobBoardDTO selectOne(Long boardId) {
-        JobBoardDTO dto = new JobBoardDTO();
+    public BoardDTO selectOne(Long boardId) {
+        BoardDTO dto = new BoardDTO();
         
-        Optional<JobBoardEntity> jobBoardEntity = jobBoardRepository.findById(boardId);
+        Optional<BoardEntity> boardEntity = boardRepository.findById(boardId);
         // 게시글 Entity->DTO변환
-        if (jobBoardEntity.isPresent()) {
-            JobBoardEntity entity = jobBoardEntity.get();
-        
-            dto = JobBoardDTO.toDTO(entity, entity.getMemberEntity().getMemberId());
+        if (boardEntity.isPresent()) {
+            BoardEntity entity = boardEntity.get();
+            dto = BoardDTO.toDTO(entity, entity.getMemberEntity().getMemberId());
         }
         return dto;
     }
@@ -101,7 +97,7 @@ public class BoardService {
      * @param jobBoardDTO
      */
     @Transactional
-    public void updateOne(JobBoardDTO boardDTO){
+    public void updateOne(BoardDTO boardDTO){
         // 수정된 게시글의 첨부파일 
         MultipartFile uploadFile = boardDTO.getUploadFile();
 
@@ -117,9 +113,9 @@ public class BoardService {
         }
 
         // 수정된 내용과 비교를 위해 DB에서 데이터 가져옴
-        Optional<JobBoardEntity> jobBoardEntity = jobBoardRepository.findById(boardDTO.getBoardId());
-        if (jobBoardEntity.isPresent()) {
-            JobBoardEntity entity = jobBoardEntity.get();
+        Optional<BoardEntity> boardEntity = boardRepository.findById(boardDTO.getBoardId());
+        if (boardEntity.isPresent()) {
+            BoardEntity entity = boardEntity.get();
             oldSavedFileName = entity.getSavedFileName();
 
             // 기존 파일이 있고, 업로드 파일도 있다면, 원래 저장된 파일은 삭제 & 새로운 파일은 저장
@@ -140,35 +136,13 @@ public class BoardService {
             }
 
             // 기존 파일도 없고, 새로운 파일도 없으면 파일 처리 과정 생략
-            // 나머지 정보 update (제목, 내용, 마감날짜, 모집인원) 
+            // 나머지 정보 update (제목, 내용) 
             entity.setTitle(boardDTO.getTitle());
             entity.setContent(boardDTO.getContent());
-            entity.setDeadline(boardDTO.getDeadline());
-            entity.setLimitNumber(boardDTO.getLimitNumber());
+            // entity.setDeadline(boardDTO.getDeadline());
+            // entity.setLimitNumber(boardDTO.getLimitNumber());
         }
 
-    }
-
-
-    /**
-     *  전달받은 boardId에 해당하는 게시글 삭제하는 함수
-     * @param boardId
-     */
-    public void deleteOne(Long boardId) {
-        // 해당 게시글 읽어옴
-        Optional<JobBoardEntity> jobBoardEntity = jobBoardRepository.findById(boardId);
-        if (jobBoardEntity.isPresent()) {
-            JobBoardEntity boardEntity = jobBoardEntity.get();
-
-            String savedFileName = boardEntity.getSavedFileName();
-            // 첨부파일이 있는 경우 파일 삭제
-            if (savedFileName!=null) {
-                String fullPath = uploadPath+"/"+savedFileName;
-                FileService.deleteFile(fullPath);
-            }
-            // DB에서 게시글 삭제
-            jobBoardRepository.deleteById(boardId);
-        }
     }
 
 
@@ -264,6 +238,59 @@ public class BoardService {
         return fetchBoards(category, searchWord, pageRequest);
     }
 
+    // ======================== 게시글 삭제 ========================
+
+    /**
+     * 전달받은 boardId에 해당하는 BoardEntity의 존재여부 확인하는 함수
+     */
+    private boolean isExist(Long boardId){
+        return boardRepository.existsById(boardId);
+    }
+
+    /**
+     * 전달받은 boardId에 해당하는 BoardEntity를 반환하는 함수
+     */
+    private BoardEntity selectBoardEntity(Long boardId){
+        return boardRepository.findById(boardId).get();
+    }
+
+    /**
+     * 전달받은 BoardEntity에 첨부파일이 있는지 확인하는 함수
+     */
+    private boolean isExistFile(BoardEntity boardEntity){
+        return boardEntity.getSavedFileName() != null ? true:false;
+    }
+
+    /**
+     * 전달받은 BoardEntity의 첨부파일 삭제하는 함수
+     */
+    private void deleteFile(BoardEntity boardEntity){
+        String fullPath = uploadPath+"/"+boardEntity.getSavedFileName();
+        FileService.deleteFile(fullPath);
+    }
+
+    /**
+     * 전달받은 BoardEntity 삭제하는 함수
+     */
+    private void deleteBoardEntity(BoardEntity boardEntity){
+        boardRepository.delete(boardEntity);
+    }
+
+    /**
+     *  전달받은 boardId에 해당하는 게시글 삭제하는 함수
+     * @param boardId
+     */
+    public void deleteOne(Long boardId) {
+        // 해당 게시글 존재 여부 확인
+        if (isExist(boardId)) {
+            // 해당 게시글 가져오기
+            BoardEntity entity = selectBoardEntity(boardId); 
+            // 첨부파일 있는 경우 삭제
+            if (isExistFile(entity))  deleteFile(entity);
+            // 해당 게시글 삭제
+            deleteBoardEntity(entity);
+        }
+    }
 
     
     // ======================== 게시글 신고 ========================
@@ -274,12 +301,12 @@ public class BoardService {
      */
     @Transactional
     public void updateRportedCount(Long boardId){
-        Optional<JobBoardEntity> entity = jobBoardRepository.findById(boardId);
+        Optional<BoardEntity> boardEntity = boardRepository.findById(boardId);
         
-        if (entity.isPresent()) {
-            JobBoardEntity jobBoardEntity = entity.get();
+        if (boardEntity.isPresent()) {
+            BoardEntity entity = boardEntity.get();
             //reported 값 true로 변경
-            jobBoardEntity.setReported(true);
+            entity.setReported(true);
         }
     }
 
@@ -290,11 +317,11 @@ public class BoardService {
     public void insertJobBoardReported(BoardReportDTO dto) {
 
         // 신고당한 게시글 엔티티
-        JobBoardEntity boardEntity = jobBoardRepository.findById(dto.getBoardId()).get();
+        BoardEntity boardEntity = boardRepository.findById(dto.getBoardId()).get();
 
         // 게시글 신고 DTO -> Entity 변환 후 DB에 저장
         BoardReportEntity entity = BoardReportEntity.toEntity(dto, boardEntity);
-        jobBoardReportedRepository.save(entity);
+        boardReportedRepository.save(entity);
 
         // 해당 게시글의 reported 컬럼 true로 변경
         updateRportedCount(dto.getBoardId());

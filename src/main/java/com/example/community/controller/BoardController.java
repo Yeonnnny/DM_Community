@@ -1,7 +1,5 @@
 package com.example.community.controller;
 
-import java.util.List;
-
 import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -16,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
 
 import com.example.community.dto.JobBoardDTO;
+import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.check.BoardCategory;
 import com.example.community.dto.display.BoardListDTO;
@@ -189,7 +188,7 @@ public class BoardController {
     @GetMapping("/download")
     public String download(@RequestParam(name = "boardId") Long boardId, HttpServletResponse response) {
 
-        JobBoardDTO boardDTO= boardService.selectOne(boardId);
+        BoardDTO boardDTO= boardService.selectOne(boardId);
 
         String originalFileName = boardDTO.getOriginalFileName();
         String savedFileName = boardDTO.getSavedFileName();
