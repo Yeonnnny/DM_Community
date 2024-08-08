@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 
@@ -64,9 +67,9 @@ public class BoardController {
      * @param model
      * @return
      */
-    @GetMapping("job/boardList")
+    @GetMapping("/board/list")
     public String boardList(@RequestParam(name = "category") String ctgr,
-                            @RequestParam(name = "userGroup") String userGroup, // 로그인한 사용자의 기수
+                            @RequestParam(name = "userGroup", defaultValue = "0") String userGroup, // 로그인한 사용자의 기수 (기본값 0)
                             @PageableDefault(page=1) Pageable pageable, // 페이징 해주는 객체, 요청한 페이지가 없으면 1로 세팅
                             @RequestParam(name = "searchWord", defaultValue = "") String searchWord ,
                             Model model) {
@@ -94,7 +97,7 @@ public class BoardController {
         model.addAttribute("searchWord", searchWord);
         model.addAttribute("navi", navi);
 
-        return "job/list";
+        return "board/list";
     }
     
     
@@ -106,7 +109,7 @@ public class BoardController {
      * @param category
      * @return
      */
-    @GetMapping("job/boardDelete")
+    @GetMapping("/board/delete")
     public String boardDelete(@RequestParam(name = "boardId") Long boardId, 
                             @RequestParam(name = "category") BoardCategory category,
                             @RequestParam(name = "searchWord", defaultValue = "") String searchWord,
@@ -119,7 +122,7 @@ public class BoardController {
         rttr.addAttribute("category", category);
         rttr.addAttribute("searchWord", searchWord);
 
-        return "redirect:/job/list"; // 게시글 목록 화면으로 
+        return "redirect:/board/list"; // 게시글 목록 화면으로 
     }
     
 
@@ -131,7 +134,7 @@ public class BoardController {
      * @return
      */
     @ResponseBody
-    @GetMapping("job/board/likeUpdate")
+    @GetMapping("/board/likeUpdate")
     public String boardLikeUpdate(@RequestParam(name = "boardId") Long boardId, @RequestParam(name = "memberId") String memberId) {
         return new String();
     }
@@ -142,7 +145,7 @@ public class BoardController {
      * @return
      */
     @ResponseBody
-    @GetMapping("job/board/getLike")
+    @GetMapping("/board/getLike")
     public String getBoardLikeCount(@RequestParam(name = "boardId") Long boardId) {
         return new String();
     }
@@ -153,7 +156,7 @@ public class BoardController {
      * @return
      */
     @ResponseBody
-    @GetMapping("job/board/isLikedByUser")
+    @GetMapping("/board/isLikedByUser")
     public String boardIsLikedByUser(@RequestParam(name = "boardId") Long boardId, @RequestParam(name = "memberId") String memberId) {
         return new String();
     }
@@ -166,7 +169,7 @@ public class BoardController {
      * @param entity
      * @return
      */
-    @PostMapping("job/boardReport")
+    @PostMapping("/board/report")
     public String postMethodName(@ModelAttribute BoardReportDTO dto, 
                             @RequestParam(name = "category") BoardCategory category,
                             @RequestParam(name = "searchWord", defaultValue = "") String searchWord,
@@ -180,9 +183,10 @@ public class BoardController {
         rttr.addAttribute("category", category);
         rttr.addAttribute("searchWord", searchWord);
         
-        return "redirect:/job/list"; // 해당 게시글 화면
+        return "redirect:/board/list"; // 해당 게시글 화면
     }
     
+
     // ================= 첨부파일 다운로드 ===================
 
     @GetMapping("/download")
@@ -226,37 +230,73 @@ public class BoardController {
         return null;
     }
     
+
+    
+    // ================== 게시글 작성 ===================
+    
+    /**
+     * 게시글 작성 화면 요청 - activity or recruit 외 카테고리 
+     * @param param
+     * @return
+     */
+    @GetMapping("/board/writeBoard")
+    public String writeBoard() {
+        return "board/writeBoard";
+    }
+
+
+    /**
+     * 게시글 작성 화면 요청 - activity or recruit
+     * @param param
+     * @return
+     */
+    @GetMapping("/board/writeJobBoard")
+    public String writeJobBoard() {
+        return "board/writeJobBoard";
+    }
+    
+    
+    /**
+     * 게시글 작성 요청 (Board 테이블 삽입)
+     * @param dto
+     * @return
+     */
+    @PostMapping("/board/writeBoard")
+    public String writeBoard(@ModelAttribute BoardDTO dto, Model model) {
+        
+        // 전달받은 게시글 DTO를 Board 테이블에 삽입
+        boardService.insertBoard(dto);
+        
+        // 게시글 목록에 필요한 파라미터 값 세팅
+        BoardCategory category = dto.getCategory();
+        String userGroup = dto.getMemberGroup();
+
+        model.addAttribute("category", category);
+        model.addAttribute("userGroup", userGroup);
+
+        return "board/list";
+    }
+    
+    /**
+     * ajax - activity/recruit 게시글 작성에서 deadline, limitNumber, currentNumber 정보를 받아서 JobBoard 테이블 삽입
+     * @param dto
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/board/writeJobBoard")
+    public Boolean writeJobBoard(@RequestParam(name = "boardId") Long boardId, 
+                                @RequestParam(name = "deadline") LocalDateTime deadline,
+                                @RequestParam(name = "limitNumber") int limitNumber,
+                                @RequestParam(name = "currentNumber") int currentNumber) {
+        // 전달받은 파라미터로 JobBoardDTO 생성
+        JobBoardDTO dto = new JobBoardDTO(boardId, deadline, limitNumber, currentNumber);
+
+        return boardService.insertJobBoard(dto);
+    }
+    
     
 
     // ================== 코드 공유 게시판 ===================
-    /**
-     * 코드 게시글 작성 화면 요청
-     * @return
-     */
-    @GetMapping("job/code/codeWrite")
-    public String codeWrite() {
-        return "job/code/write";
-    }
-
-    /**
-     * 
-     * @param dto
-     * @param model
-     * @return
-     */
-    @PostMapping("job/code/codeWrite")
-    public String codeWrite(@ModelAttribute JobBoardDTO dto, Model model) {
-
-        // 전달받은 DTO를 DB에 저장
-        
-        // 게시글 DTO를 담아서 화면 조회 요청
-        model.addAttribute("board", dto);
-        return "job/code/detail";
-    }
-    
-
-    
-    
 
 
 

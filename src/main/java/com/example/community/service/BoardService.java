@@ -12,10 +12,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
+import com.example.community.dto.JobBoardDTO;
 import com.example.community.dto.check.BoardCategory;
 import com.example.community.dto.display.BoardListDTO;
 import com.example.community.entity.BoardEntity;
 import com.example.community.entity.BoardReportEntity;
+import com.example.community.entity.JobBoardEntity;
 import com.example.community.entity.MemberEntity;
 import com.example.community.repository.BoardReportRepository;
 import com.example.community.repository.BoardRepository;
@@ -46,32 +48,6 @@ public class BoardService {
 
 
     // ======================== 기본 CRUD ========================
-
-    /**
-     * DB에 게시글 저장하는 함수 (only board 테이블에만)
-     * @param dto
-     * @return
-     */
-    public void insertOne(BoardDTO boardDTO){
-        // 작성자 엔티티
-        MemberEntity memberEntity = memberRepository.findById(boardDTO.getMemberId()).get();
-
-        String originalFileName = null;
-        String savedFileName = null;
-
-        // 첨부파일이 있으면 파일명 세팅
-        if (!boardDTO.getUploadFile().isEmpty()) {
-            originalFileName = boardDTO.getUploadFile().getOriginalFilename();
-            savedFileName = FileService.saveFile(boardDTO.getUploadFile(), uploadPath);
-
-            boardDTO.setOriginalFileName(originalFileName);
-            boardDTO.setSavedFileName(savedFileName);
-        }
-
-        // 게시글 DTO -> 엔티티 변환 후 DB 저장
-        BoardEntity boardEntity = BoardEntity.toEntity(boardDTO, memberEntity);
-        boardRepository.save(boardEntity);
-    }
 
 
     /**
@@ -291,7 +267,67 @@ public class BoardService {
             deleteBoardEntity(entity);
         }
     }
+    
 
+    // ======================== 게시글 생성 ========================
+    
+    /**
+     * 전달받은 memberId에 해당하는 게시글 작성자 MemberEntity 반환하는 함수
+     * @param memberId
+     * @return
+     */
+    private MemberEntity findMemberEntity(String memberId){
+        return memberRepository.findById(memberId).get();
+    }
+
+    /**
+     * 전달받은 게시글 DTO의 첨부파일 여부 확인하는 함수 
+     */
+    private boolean uploadFileisExist(BoardDTO dto){
+        return !dto.getUploadFile().isEmpty();
+    }
+    
+    /**
+     * 전달받은 게시글 DTO에 첨부파일이 존재하여 첨부파일 저장 및 파일명을 세팅하는 함수
+     */
+    private void saveFile(BoardDTO dto){
+        String originalFileName = dto.getUploadFile().getOriginalFilename();
+        String savedFileName = FileService.saveFile(dto.getUploadFile(), uploadPath);
+
+        dto.setOriginalFileName(originalFileName);
+        dto.setSavedFileName(savedFileName);
+    }
+
+    /**
+     * 전달받은 게시글 DTO를 Entity로 변환 후 Board DB에 저장하는 함수
+     */
+    public void insertBoard(BoardDTO dto) {
+
+        MemberEntity memberEntity = findMemberEntity(dto.getMemberId()); // 작성자 Entity
+
+        // 첨부파일이 있으면 파일저장 및 파일명 세팅
+        if (uploadFileisExist(dto)) {
+            saveFile(dto);
+        }
+
+        // 게시글 DTO -> 엔티티 변환 후 DB 저장
+        boardRepository.save(BoardEntity.toEntity(dto, memberEntity));
+    }
+
+    /**
+     * 전달받은 JobBoardDTO를 Entity로 변환 후 JobBoard DB에 저장하고, 저장여부 반환하는 함수
+     * @param dto
+     * @return
+     */
+    public Boolean insertJobBoard(JobBoardDTO dto) {
+        
+        BoardEntity boardEntity = selectBoardEntity(dto.getBoardId()); // 게시글 Entity 
+        JobBoardEntity result = jobBoardRepository.save(JobBoardEntity.toEntity(dto, boardEntity)); // JobBoard에 저장 
+
+        return result != null ? true : false ; // 저장 결과에 따른 저장여부 반환
+    }
+    
+    
     
     // ======================== 게시글 신고 ========================
 
@@ -326,6 +362,12 @@ public class BoardService {
         // 해당 게시글의 reported 컬럼 true로 변경
         updateRportedCount(dto.getBoardId());
     }
+
+
+
+
+
+
 
 
 
