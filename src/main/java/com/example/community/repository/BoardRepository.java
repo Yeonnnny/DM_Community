@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.example.community.dto.check.BoardCategory;
-import com.example.community.dto.display.BoardListDTO;
+import com.example.community.dto.combine.BoardListDTO;
 import com.example.community.entity.BoardEntity;
 
 public interface BoardRepository extends JpaRepository<BoardEntity, Long> {

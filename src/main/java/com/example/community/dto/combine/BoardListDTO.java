@@ -1,4 +1,4 @@
-package com.example.community.dto.display;
+package com.example.community.dto.combine;
 
 import java.time.LocalDateTime;
 

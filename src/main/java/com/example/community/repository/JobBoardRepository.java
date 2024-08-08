@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.example.community.dto.check.BoardCategory;
-import com.example.community.dto.display.BoardListDTO;
+import com.example.community.dto.combine.BoardListDTO;
 import com.example.community.entity.JobBoardEntity;
 
 public interface JobBoardRepository extends JpaRepository<JobBoardEntity, Long>{
