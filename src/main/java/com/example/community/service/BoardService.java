@@ -14,7 +14,7 @@ import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.JobBoardDTO;
 import com.example.community.dto.check.BoardCategory;
-import com.example.community.dto.display.BoardListDTO;
+import com.example.community.dto.combine.BoardListDTO;
 import com.example.community.entity.BoardEntity;
 import com.example.community.entity.BoardReportEntity;
 import com.example.community.entity.JobBoardEntity;
@@ -319,15 +319,12 @@ public class BoardService {
      * @param dto
      * @return
      */
-    public Boolean insertJobBoard(JobBoardDTO dto) {
-        
+    public void insertJobBoard(JobBoardDTO dto) {
         BoardEntity boardEntity = selectBoardEntity(dto.getBoardId()); // 게시글 Entity 
-        JobBoardEntity result = jobBoardRepository.save(JobBoardEntity.toEntity(dto, boardEntity)); // JobBoard에 저장 
-
-        return result != null ? true : false ; // 저장 결과에 따른 저장여부 반환
+        jobBoardRepository.save(JobBoardEntity.toEntity(dto, boardEntity)); // JobBoard에 저장 
     }
     
-    
+
     
     // ======================== 게시글 신고 ========================
 

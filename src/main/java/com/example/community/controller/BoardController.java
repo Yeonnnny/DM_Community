@@ -18,7 +18,7 @@ import com.example.community.dto.JobBoardDTO;
 import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.check.BoardCategory;
-import com.example.community.dto.display.BoardListDTO;
+import com.example.community.dto.combine.BoardListDTO;
 import com.example.community.service.BoardService;
 import com.example.community.util.PageNavigator;
 
@@ -239,9 +239,9 @@ public class BoardController {
      * @param param
      * @return
      */
-    @GetMapping("/board/writeBoard")
+    @GetMapping("/board/write")
     public String writeBoard() {
-        return "board/writeBoard";
+        return "board/write";
     }
 
 
@@ -250,9 +250,9 @@ public class BoardController {
      * @param param
      * @return
      */
-    @GetMapping("/board/writeJobBoard")
+    @GetMapping("/board/writeActivityOrRecruit")
     public String writeJobBoard() {
-        return "board/writeJobBoard";
+        return "board/writeActivityOrRecruit";
     }
     
     
@@ -261,38 +261,25 @@ public class BoardController {
      * @param dto
      * @return
      */
-    @PostMapping("/board/writeBoard")
+    @PostMapping("/board/write")
     public String writeBoard(@ModelAttribute BoardDTO dto, Model model) {
         
         // 전달받은 게시글 DTO를 Board 테이블에 삽입
         boardService.insertBoard(dto);
         
-        // 게시글 목록에 필요한 파라미터 값 세팅
-        BoardCategory category = dto.getCategory();
-        String userGroup = dto.getMemberGroup();
-
-        model.addAttribute("category", category);
-        model.addAttribute("userGroup", userGroup);
+        // activity or recruit -> JobBoard 테이블에 정보 삽입 
+        if (dto.getCategory()==BoardCategory.activity || dto.getCategory()==BoardCategory.recruit) {
+            JobBoardDTO jobBoardDTO = new JobBoardDTO(dto.getBoardId(), dto.getDeadline(), dto.getLimitNumber(), dto.getCurrentNumber());
+            boardService.insertJobBoard(jobBoardDTO);
+        }
+        
+        // 게시글 목록에 필요한 파라미터 값 세팅 후 model에 담기
+        model.addAttribute("category", dto.getCategory());
+        model.addAttribute("userGroup", dto.getMemberGroup());
 
         return "board/list";
     }
     
-    /**
-     * ajax - activity/recruit 게시글 작성에서 deadline, limitNumber, currentNumber 정보를 받아서 JobBoard 테이블 삽입
-     * @param dto
-     * @return
-     */
-    @ResponseBody
-    @GetMapping("/board/writeJobBoard")
-    public Boolean writeJobBoard(@RequestParam(name = "boardId") Long boardId, 
-                                @RequestParam(name = "deadline") LocalDateTime deadline,
-                                @RequestParam(name = "limitNumber") int limitNumber,
-                                @RequestParam(name = "currentNumber") int currentNumber) {
-        // 전달받은 파라미터로 JobBoardDTO 생성
-        JobBoardDTO dto = new JobBoardDTO(boardId, deadline, limitNumber, currentNumber);
-
-        return boardService.insertJobBoard(dto);
-    }
     
     
 
