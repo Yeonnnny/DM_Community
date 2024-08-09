@@ -49,7 +49,6 @@ public class BoardService {
 
     // ======================== 기본 CRUD ========================
 
-
     /**
      * 전달받은 boardId에 해당하는 게시글 엔티티 반환하는 함수
      * @param boardId

@@ -1,18 +1,11 @@
 package com.example.community.controller;
 
-import java.io.FileInputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.FileCopyUtils;
 
 import com.example.community.dto.JobBoardDTO;
 import com.example.community.dto.BoardDTO;
@@ -22,8 +15,6 @@ import com.example.community.dto.combine.BoardListDTO;
 import com.example.community.service.BoardService;
 import com.example.community.util.PageNavigator;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 
@@ -124,6 +114,56 @@ public class BoardController {
 
         return "redirect:/board/list"; // 게시글 목록 화면으로 
     }
+
+
+
+    // ================== 게시글 생성 ===================
+    
+    /**
+     * 게시글 작성 화면 요청 - activity or recruit 외 카테고리 
+     * @param param
+     * @return
+     */
+    @GetMapping("/board/write")
+    public String writeBoard() {
+        return "board/write";
+    }
+
+
+    /**
+     * 게시글 작성 화면 요청 - activity or recruit
+     * @param param
+     * @return
+     */
+    @GetMapping("/board/writeActivityOrRecruit")
+    public String writeJobBoard() {
+        return "board/writeActivityOrRecruit";
+    }
+    
+    
+    /**
+     * 게시글 작성 요청 (Board 테이블 삽입)
+     * @param dto
+     * @return
+     */
+    @PostMapping("/board/write")
+    public String writeBoard(@ModelAttribute BoardDTO dto, Model model) {
+        
+        // 전달받은 게시글 DTO를 Board 테이블에 삽입
+        boardService.insertBoard(dto);
+        
+        // activity or recruit -> JobBoard 테이블에 정보 삽입 
+        if (dto.getCategory()==BoardCategory.activity || dto.getCategory()==BoardCategory.recruit) {
+            JobBoardDTO jobBoardDTO = new JobBoardDTO(dto.getBoardId(), dto.getDeadline(), dto.getLimitNumber(), dto.getCurrentNumber());
+            boardService.insertJobBoard(jobBoardDTO);
+        }
+        
+        // 게시글 목록에 필요한 파라미터 값 세팅 후 model에 담기
+        model.addAttribute("category", dto.getCategory());
+        model.addAttribute("userGroup", dto.getMemberGroup());
+
+        return "board/list";
+    }
     
 
     // ===================== 게시글 좋아요 ===================
@@ -185,121 +225,8 @@ public class BoardController {
         
         return "redirect:/board/list"; // 해당 게시글 화면
     }
-    
-
-    // ================= 첨부파일 다운로드 ===================
-
-    @GetMapping("/download")
-    public String download(@RequestParam(name = "boardId") Long boardId, HttpServletResponse response) {
-
-        BoardDTO boardDTO= boardService.selectOne(boardId);
-
-        String originalFileName = boardDTO.getOriginalFileName();
-        String savedFileName = boardDTO.getSavedFileName();
-
-        try {
-            String tempName = URLEncoder.encode(originalFileName,StandardCharsets.UTF_8.toString());
-            response.setHeader("Content-Disposition", "attachment;filname="+tempName);
-            // 위 코드가 없을 경우 브라우저가 실행 가능한 파일(이미지 파일이 대표적인 예임)인 경우 브라우저 자체에서 오픈함
-            // 즉, 위 코드는 브라우저 자체에서 실행되도록 하지 않고 다운받게 하기 위한 코드임 
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
-        String fullPath = uploadPath+"/"+savedFileName;
-
-        // 스트림 설정 (실제 다운로드)
-        FileInputStream filein = null;
-        ServletOutputStream fileout = null; // 원격지의 장소에 데이터를 쏘기 위함
-
-        // Local에 있는 파일을 메모리로 끌어와야 함
-        try {
-            filein = new FileInputStream(fullPath); // 하드디스크->메모리에 올림(서버 입장에서의 로컬이기 때문에 input 작업임)
-            fileout = response.getOutputStream();   // 웹에서 원격지의 데이터를 쏴주는 것. 로컬에서 벗어난 다른 쪽으로 데이터를 쏘는 역할
-
-            FileCopyUtils.copy(filein, fileout);    // copy(원본, 내보낼 객체) : 원본을 읽어서 내보냄
-            
-            // 연 순서의 반대로 닫아야 함
-            fileout.close();
-            filein.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-    
-
-    
-    // ================== 게시글 작성 ===================
-    
-    /**
-     * 게시글 작성 화면 요청 - activity or recruit 외 카테고리 
-     * @param param
-     * @return
-     */
-    @GetMapping("/board/write")
-    public String writeBoard() {
-        return "board/write";
-    }
-
-
-    /**
-     * 게시글 작성 화면 요청 - activity or recruit
-     * @param param
-     * @return
-     */
-    @GetMapping("/board/writeActivityOrRecruit")
-    public String writeJobBoard() {
-        return "board/writeActivityOrRecruit";
-    }
-    
-    
-    /**
-     * 게시글 작성 요청 (Board 테이블 삽입)
-     * @param dto
-     * @return
-     */
-    @PostMapping("/board/write")
-    public String writeBoard(@ModelAttribute BoardDTO dto, Model model) {
-        
-        // 전달받은 게시글 DTO를 Board 테이블에 삽입
-        boardService.insertBoard(dto);
-        
-        // activity or recruit -> JobBoard 테이블에 정보 삽입 
-        if (dto.getCategory()==BoardCategory.activity || dto.getCategory()==BoardCategory.recruit) {
-            JobBoardDTO jobBoardDTO = new JobBoardDTO(dto.getBoardId(), dto.getDeadline(), dto.getLimitNumber(), dto.getCurrentNumber());
-            boardService.insertJobBoard(jobBoardDTO);
-        }
-        
-        // 게시글 목록에 필요한 파라미터 값 세팅 후 model에 담기
-        model.addAttribute("category", dto.getCategory());
-        model.addAttribute("userGroup", dto.getMemberGroup());
-
-        return "board/list";
-    }
-    
-    
-    
-
-    // ================== 코드 공유 게시판 ===================
-
-
-
-    // ================ 지난 프로젝트 게시판 =================
-
-
-
-
-    // ================== 대외 활동 게시판 ===================
-
-
-
-
-    // ============= 공모전/프로젝트 구인 게시판 =============
 
 
 
     
-}
+} 
