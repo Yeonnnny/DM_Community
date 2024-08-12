@@ -95,8 +95,12 @@ public class BoardEntity {
     @OneToMany(mappedBy = "boardEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
     @OrderBy("report_date")
     private List<BoardReportEntity> boardReportEntities;
-
+    
     // 3) Like
+    @OneToMany(mappedBy = "boardEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OrderBy("member_id")
+    private List<LikeEntity> likeEntities;
+    
 
 
 
