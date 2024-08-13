@@ -13,7 +13,7 @@ import com.example.community.entity.BoardEntity;
 
 public interface BoardRepository extends JpaRepository<BoardEntity, Long> {
 
-        // 카테고리 가 group이고, 전달받은 memberGroup에 해당하는 (신고당하지 않은) 게시글 리스트 반환 (최신순)
+        // 카테고리가 group이고, 전달받은 memberGroup에 해당하는 (신고당하지 않은) 게시글 리스트 반환 (최신순)
         @Query("SELECT b FROM BoardEntity b WHERE " +
                 "b.category = 'group' AND " +
                 "b.memberGroup =: userGroup AND " +
@@ -42,7 +42,6 @@ public interface BoardRepository extends JpaRepository<BoardEntity, Long> {
         Page<BoardListDTO> findBoardListByMemberGroupAndTitleContaining(@Param("userGroup") String userGroup, 
                                                                         @Param("searchWord") String searchWord, 
                                                                         Pageable pageRequest);
-
 
         // 카테고리에 해당하는 (신고당하지 않은) 게시글 리스트 반환 (최신순)
         @Query("SELECT b FROM BoardEntity b WHERE " +
