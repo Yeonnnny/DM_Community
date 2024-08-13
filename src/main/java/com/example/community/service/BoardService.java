@@ -31,9 +31,9 @@ import com.example.community.repository.LikeRepository;
 import com.example.community.repository.MemberRepository;
 import com.example.community.util.FileService;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.bytebuddy.description.ByteCodeElement.Member;
 
 @Service
 @RequiredArgsConstructor
@@ -55,61 +55,66 @@ public class BoardService {
     @Value("${user.board.pageLimit}")
     int pageLimit; // 한 페이지 당 게시글 개수
 
-
-    // ======================== 기본 CRUD ========================
-
+    // ======================== select Entity =======================
 
     /**
-     * 수정된 게시글 DTO를 받아서 수정해서 DB에 저장하는 함수
-     * @param jobBoardDTO
+     * 전달받은 boardId에 해당하는 BoardEntity를 반환하는 함수 (해당 Entity가 없는 경우 Exception 발생)
      */
-    @Transactional
-    public void updateOne(BoardDTO boardDTO){
-        // 수정된 게시글의 첨부파일 
-        MultipartFile uploadFile = boardDTO.getUploadFile();
+    private BoardEntity selectBoardEntity(Long boardId){
+        return boardRepository.findById(boardId).orElseThrow(() -> new EntityNotFoundException("Board not found with ID: " + boardId));
+    }
 
-        String originalFileName = null;
-        String savedFileName = null;
-        String oldSavedFileName = null;
+    /**
+     * 전달받은 boardId에 해당하는 JobBoardEntity 반환하는 함수 (해당 Entity가 없는 경우 Exception 발생)
+     * @param boardId
+     * @return
+     */
+    private JobBoardEntity selectJobBoardEntity (Long boardId){
+        return jobBoardRepository.findById(boardId).orElseThrow(() -> new EntityNotFoundException("JobBoard not found with ID: " + boardId));
+    }
 
-        // 수정 작업에서 새롭게 업로드된 파일이 있는 경우
-        // 파일을 저장장치에 저장하고, 이름 추출
+    /**
+     * 전달받은 memberId에 해당하는 MemberEntity 반환하는 함수 (해당 Entity가 없는 경우 Exception 발생)
+     * @param memberId
+     * @return
+     */
+    private MemberEntity selectMemberEntity(String memberId){
+        return memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("Member not found with ID: " + memberId));
+    }
+
+    // ======================== 첨부파일 관련 ========================
+
+    // 첨부파일(originalFileName, savedFileName)에 대한 구조체
+    private static class FileDetails {
+        private final String originalFileName;
+        private final String savedFileName;
+
+        public FileDetails(String originalFileName, String savedFileName) {
+            this.originalFileName = originalFileName;
+            this.savedFileName = savedFileName;
+        }
+
+        public String getOriginalFileName() {
+            return originalFileName;
+        }
+
+        public String getSavedFileName() {
+            return savedFileName;
+        }
+    }
+
+    /**
+     * uploadFile이 null이 아닌 경우 첨부파일을 저장하고, 원본파일명과 저장파일명이 담긴 FileDetails 객체 반환하는 함수
+     * @param uploadFile
+     * @return FileDetails (원본파일명, 저장파일명) 
+     */
+    private FileDetails handleFileUpload(MultipartFile uploadFile) {
         if (!uploadFile.isEmpty()) {
-            originalFileName = uploadFile.getOriginalFilename();
-            savedFileName = FileService.saveFile(uploadFile, uploadPath);
+            String originalFileName = uploadFile.getOriginalFilename();
+            String savedFileName = FileService.saveFile(uploadFile, uploadPath);
+            return new FileDetails(originalFileName, savedFileName);
         }
-
-        // 수정된 내용과 비교를 위해 DB에서 데이터 가져옴
-        Optional<BoardEntity> boardEntity = boardRepository.findById(boardDTO.getBoardId());
-        if (boardEntity.isPresent()) {
-            BoardEntity entity = boardEntity.get();
-            oldSavedFileName = entity.getSavedFileName();
-
-            // 기존 파일이 있고, 업로드 파일도 있다면, 원래 저장된 파일은 삭제 & 새로운 파일은 저장
-            if (oldSavedFileName!=null && !uploadFile.isEmpty()) {
-                // 기존 파일 저장장치에서 삭제
-                String fullPath = uploadPath+"/"+oldSavedFileName;
-                FileService.deleteFile(fullPath);
-                // 새로운 파일 저장
-                entity.setOriginalFileName(originalFileName);
-                entity.setSavedFileName(savedFileName);
-                
-            }
-            // 기존 파일은 없고, 새롭게 업로드한 파일이 있는 경우
-            else if(oldSavedFileName==null && !uploadFile.isEmpty()){
-                // 새로운 파일 저장
-                entity.setOriginalFileName(originalFileName);
-                entity.setSavedFileName(savedFileName);
-            }
-
-            // 기존 파일도 없고, 새로운 파일도 없으면 파일 처리 과정 생략
-            // 나머지 정보 update (제목, 내용) 
-            entity.setTitle(boardDTO.getTitle());
-            entity.setContent(boardDTO.getContent());
-            // entity.setDeadline(boardDTO.getDeadline());
-            // entity.setLimitNumber(boardDTO.getLimitNumber());
-        }
-
+        return null;
     }
 
 
@@ -215,25 +220,10 @@ public class BoardService {
     }
 
     /**
-     * 전달받은 boardId에 해당하는 BoardEntity를 반환하는 함수
-     */
-    private BoardEntity selectBoardEntity(Long boardId){
-        return boardRepository.findById(boardId).get();
-    }
-
-    /**
      * 전달받은 BoardEntity에 첨부파일이 있는지 확인하는 함수
      */
     private boolean isExistFile(BoardEntity boardEntity){
         return boardEntity.getSavedFileName() != null ? true:false;
-    }
-
-    /**
-     * 전달받은 BoardEntity의 첨부파일 삭제하는 함수
-     */
-    private void deleteFile(BoardEntity boardEntity){
-        String fullPath = uploadPath+"/"+boardEntity.getSavedFileName();
-        FileService.deleteFile(fullPath);
     }
 
     /**
@@ -253,7 +243,10 @@ public class BoardService {
             // 해당 게시글 가져오기
             BoardEntity entity = selectBoardEntity(boardId); 
             // 첨부파일 있는 경우 삭제
-            if (isExistFile(entity))  deleteFile(entity);
+            if (isExistFile(entity)) {
+                String fullPath = uploadPath+"/"+entity.getSavedFileName();
+                FileService.deleteFile(fullPath);
+            } 
             // 해당 게시글 삭제
             deleteBoardEntity(entity);
         }
@@ -277,16 +270,23 @@ public class BoardService {
     private boolean uploadFileisExist(BoardDTO dto){
         return !dto.getUploadFile().isEmpty();
     }
-    
+
     /**
-     * 전달받은 게시글 DTO에 첨부파일이 존재하여 첨부파일 저장 및 파일명을 세팅하는 함수
+     * BoardDTO의 originalFileName 및 SavedFileName을 세팅하는 함수 
+     */
+    @Transactional
+    private void setFileName(BoardDTO dto, String originalFileName, String savedFileName){
+        dto.setOriginalFileName(originalFileName);
+        dto.setSavedFileName(savedFileName);
+    }
+
+    /**
+     * 전달받은 게시글 DTO에 첨부파일이 존재하여 첨부파일 저장 및 해당 DTO의 파일명을 세팅하는 함수
      */
     private void saveFile(BoardDTO dto){
         String originalFileName = dto.getUploadFile().getOriginalFilename();
         String savedFileName = FileService.saveFile(dto.getUploadFile(), uploadPath);
-
-        dto.setOriginalFileName(originalFileName);
-        dto.setSavedFileName(savedFileName);
+        setFileName(dto, originalFileName, savedFileName);
     }
 
     /**
@@ -319,14 +319,7 @@ public class BoardService {
     
     // ======================== 게시글 조회 ========================
 
-    /**
-     * 전달받은 boardId에 해당하는 JobBoardEntity 반환하는 함수
-     * @param boardId
-     * @return
-     */
-    private JobBoardEntity selectJobBoardEntity (Long boardId){
-        return jobBoardRepository.findById(boardId).get();
-    }
+    
 
     /**
      * 전달받은 boardId에 해당하는 게시글 DTO반환하는 함수 (job에 관련된 정보가 있는 경우는 해당 정보도 포함해 반환함)
@@ -405,15 +398,6 @@ public class BoardService {
     public long getLikeCount(Long boardId) {
         BoardEntity boardEntity = selectBoardEntity(boardId); // boardEntity
         return likeRepository.countByBoardEntity(boardEntity);
-    }
-
-    /**
-     * 전달받은 memberId에 해당하는 MemberEntity 반환하는 함수
-     * @param memberId
-     * @return
-     */
-    private MemberEntity selectMemberEntity(String memberId){
-        return memberRepository.findById(memberId).get();
     }
 
     /**
@@ -519,6 +503,77 @@ public class BoardService {
     }
 
 
+
+    // ======================== 게시글 수정 ========================
+
+    @Transactional
+    public void updateBoard(BoardDTO boardDTO) {
+        // 새롭게 업로드된 파일이 있는 경우 파일 저장 및 이름 추출
+        FileDetails newFileDetails = handleFileUpload(boardDTO.getUploadFile());
+
+        // 수정된 내용과 비교를 위해 DB에서 데이터 가져옴
+        BoardEntity boardEntity = selectBoardEntity(boardDTO.getBoardId());
+
+        // 기존 파일 처리 및 새로운 파일 저장
+        handleExistingFile(boardEntity, newFileDetails);
+
+        // Board 수정 (제목, 내용)
+        updateBoardContent(boardEntity, boardDTO);
+
+        // activity/recruit 게시글인 경우 
+        if (boardDTO.getCategory()==BoardCategory.activity || boardDTO.getCategory()==BoardCategory.recruit) {
+            // 해당 데이터를 JobBoard DB에서 가져옴
+            JobBoardEntity jobBoardEntity = selectJobBoardEntity(boardDTO.getBoardId()); 
+            // JobBoard 수정 (마감기한, 모집인원)
+            updateJobBoard(jobBoardEntity, boardDTO);
+        }
+    }
+
+    /**
+     * 게시글 수정 시, 
+     * 기존 파일 존재 AND 새로운 파일 존재 → 기존 파일 삭제 후 새로운 파일 저장 , 
+     * 기존 파일 부재 AND 새로운 파일 존재 → 새로운 파일 저장 
+     */
+    private void handleExistingFile(BoardEntity boardEntity, FileDetails newFileDetails) {
+        String oldSavedFileName = boardEntity.getSavedFileName();
+
+        if (oldSavedFileName != null && newFileDetails != null) {
+            // 기존 파일 삭제
+            String fullPath = uploadPath + "/" + oldSavedFileName;
+            FileService.deleteFile(fullPath);
+
+            // 새로운 파일 정보 업데이트
+            boardEntity.setOriginalFileName(newFileDetails.getOriginalFileName());
+            boardEntity.setSavedFileName(newFileDetails.getSavedFileName());
+
+        } else if (newFileDetails != null) {
+            // 기존 파일은 없고, 새롭게 업로드된 파일이 있는 경우
+            boardEntity.setOriginalFileName(newFileDetails.getOriginalFileName());
+            boardEntity.setSavedFileName(newFileDetails.getSavedFileName());
+        }
+    }
+
+    /**
+     * BoardEntity의 title, content 수정
+     */
+    private void updateBoardContent(BoardEntity boardEntity, BoardDTO boardDTO) {
+        boardEntity.setTitle(boardDTO.getTitle());
+        boardEntity.setContent(boardDTO.getContent());
+    }
+
+    /**
+     * JobBoardEntity의 deadline, limitNumber 수정
+     * @param boardDTO
+     */
+    private void updateJobBoard(JobBoardEntity jobBoardEntity, BoardDTO boardDTO){
+        jobBoardEntity.setDeadline(boardDTO.getDeadline());
+        jobBoardEntity.setLimitNumber(boardDTO.getLimitNumber());
+    }
+    
+
+
+
+    
 
 
     

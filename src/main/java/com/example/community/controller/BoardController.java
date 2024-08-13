@@ -314,6 +314,68 @@ public class BoardController {
             return false; // DB 저장 실패
         }
     }
+
+
+    // ===================== 게시글 수정 =====================
+    
+    /**
+     * 게시글 수정 화면 요청
+     * @param boardId
+     * @param model
+     * @return
+     */
+    @GetMapping("/board/update")
+    public String updateBoard(@RequestParam(name = "boardId") Long boardId, 
+                            @RequestParam(name = "category") BoardCategory category,
+                            @RequestParam(name = "searchWord", defaultValue = "") String searchWord, Model model) {
+        // 수정할 게시글 DTO
+        BoardDTO boardDTO = boardService.selectOne(boardId);
+        
+        model.addAttribute("board", boardDTO);
+        model.addAttribute("category", category);
+        model.addAttribute("searchWord", searchWord);
+        return "board/update";
+    }
+    
+    /**
+     * activity/recruit 게시글 수정 화면 요청
+     * @param boardId
+     * @param model
+     * @return
+     */
+    @GetMapping("/board/updateActivityOrRecruit")
+    public String updateActivityOrRecruitBoard(@RequestParam(name = "boardId") Long boardId, 
+                                                @RequestParam(name = "category") BoardCategory category,
+                                                @RequestParam(name = "searchWord", defaultValue = "") String searchWord, Model model) {
+        // 수정할 게시글 DTO
+        BoardDTO boardDTO = boardService.selectOne(boardId);
+        
+        model.addAttribute("board", boardDTO);
+        model.addAttribute("category", category);
+        model.addAttribute("searchWord", searchWord);
+        return "board/updateActivityOrRecruit";
+    }
+    
+    /**
+     * 게시글 수정 처리 요청
+     * @param boardDTO
+     * @param category
+     * @param searchWord
+     * @param model
+     * @return
+     */
+    @PostMapping("/board/update")
+    public String postMethodName(@ModelAttribute BoardDTO boardDTO, 
+                                @RequestParam(name = "category") BoardCategory category,
+                                @RequestParam(name = "searchWord", defaultValue = "") String searchWord, Model model) {
+        // 전달받은 boardDTO로 기존 board 정보 수정 처리
+        boardService.updateBoard(boardDTO);
+        
+        model.addAttribute("board", boardDTO);
+        model.addAttribute("category", category);
+        model.addAttribute("searchWord", searchWord);
+        return "board/detail";
+    }
     
     
 
