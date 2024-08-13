@@ -442,36 +442,29 @@ public class BoardService {
     // ======================== 게시글 신고 ========================
 
     /**
+     * 게시글 신고 내용이 담긴 DTO를 Entity로 변환 후 DB에 저장하는 함수 
+     * @param dto
+     */
+    public void insertJobBoardReported(BoardReportDTO dto) {
+        BoardEntity boardEntity = selectBoardEntity(dto.getBoardId()); // boardEntity
+        // 게시글 신고 DTO -> Entity 변환
+        BoardReportEntity entity = BoardReportEntity.toEntity(dto, boardEntity);
+        // BoardReported DB에 저장
+        boardReportedRepository.save(entity);
+    }
+
+    /**
      * 해당 boardId에 해당하는 게시글의 reported 값을 true로 변환하는 함수
      * @param boardId
      */
     @Transactional
     public void updateRportedCount(Long boardId){
-        Optional<BoardEntity> boardEntity = boardRepository.findById(boardId);
-        
-        if (boardEntity.isPresent()) {
-            BoardEntity entity = boardEntity.get();
-            //reported 값 true로 변경
-            entity.setReported(true);
-        }
+        BoardEntity boardEntity = selectBoardEntity(boardId);        
+        //reported 값 true로 변경
+        boardEntity.setReported(true);
     }
 
-    /**
-     * 게시글 신고 내용이 담긴 DTO를 Entity로 변환 후 DB에 저장하는 함수 
-     * @param dto
-     */
-    public void insertJobBoardReported(BoardReportDTO dto) {
-
-        // 신고당한 게시글 엔티티
-        BoardEntity boardEntity = boardRepository.findById(dto.getBoardId()).get();
-
-        // 게시글 신고 DTO -> Entity 변환 후 DB에 저장
-        BoardReportEntity entity = BoardReportEntity.toEntity(dto, boardEntity);
-        boardReportedRepository.save(entity);
-
-        // 해당 게시글의 reported 컬럼 true로 변경
-        updateRportedCount(dto.getBoardId());
-    }
+    
 
 
 

@@ -259,15 +259,17 @@ public class BoardController {
                             @RequestParam(name = "searchWord", defaultValue = "") String searchWord,
                             RedirectAttributes rttr) {
 
-        // 신고 당한 게시글 블라인드 처리 후  
         // JobBoardReport DB에 저장
         boardService.insertJobBoardReported(dto);
+
+        // Board의 report 컬럼 값 수정
+        boardService.updateRportedCount(dto.getBoardId());
 
         // 카테고리, 검색어, 페이지
         rttr.addAttribute("category", category);
         rttr.addAttribute("searchWord", searchWord);
         
-        return "redirect:/board/list"; // 해당 게시글 화면
+        return "redirect:/board/list"; // 게시글 목록으로 이동
     }
 
     
