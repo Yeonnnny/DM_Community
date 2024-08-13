@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.JobBoardDTO;
-import com.example.community.dto.LikeDTO;
 import com.example.community.dto.check.BoardCategory;
 import com.example.community.dto.combine.BoardListDTO;
 import com.example.community.entity.BoardEntity;
@@ -24,6 +23,7 @@ import com.example.community.entity.LikeEntity;
 import com.example.community.entity.MemberEntity;
 import com.example.community.repository.BoardReportRepository;
 import com.example.community.repository.BoardRepository;
+import com.example.community.repository.JobBoardRecruitRepository;
 import com.example.community.repository.JobBoardRepository;
 import com.example.community.repository.LikeRepository;
 import com.example.community.repository.MemberRepository;
@@ -31,13 +31,15 @@ import com.example.community.util.FileService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.description.ByteCodeElement.Member;
 
 @Service
 @RequiredArgsConstructor
 public class BoardService {
+    private final MemberRepository memberRepository;
     private final BoardRepository boardRepository;
     private final JobBoardRepository jobBoardRepository;
-    private final MemberRepository memberRepository;
+    private final JobBoardRecruitRepository jobBoardRecruitRepository;
     private final BoardReportRepository boardReportedRepository;
     private final LikeRepository likeRepository;
 
@@ -310,6 +312,8 @@ public class BoardService {
         BoardEntity boardEntity = selectBoardEntity(dto.getBoardId()); // 게시글 Entity 
         jobBoardRepository.save(JobBoardEntity.toEntity(dto, boardEntity)); // JobBoard에 저장 
     }
+
+
     
     // ======================== 게시글 조회 ========================
 
@@ -376,6 +380,17 @@ public class BoardService {
         return jobBoardEntity.getLimitNumber()<=jobBoardEntity.getCurrentNumber() ? true : false; // limit 수가 current 수보가 작나 같으면 true 반환
     }
 
+    /**
+     * JobBoardRecruit DB에 전달받은 정보에 대한 데이터 존재여부 반환하는 함수
+     * @param boardId
+     * @param memberId
+     * @return 참여 O → true / 참여 X → false
+     */
+    public boolean isRecruited(Long boardId, String memberId) {
+        BoardEntity boardEntity = selectBoardEntity(boardId);       // boardEntity
+        MemberEntity memberEntity = selectMemberEntity(memberId);   // memberEntity
+        return jobBoardRecruitRepository.findByBoardAndMember(boardEntity, memberEntity).isPresent();
+    }
     
 
     // ======================== 게시글 좋아요 ========================
@@ -463,6 +478,9 @@ public class BoardService {
         //reported 값 true로 변경
         boardEntity.setReported(true);
     }
+
+
+
 
     
 

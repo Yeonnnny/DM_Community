@@ -195,7 +195,7 @@ public class BoardController {
     }
 
     /**
-     * ajax - activity/recruit 게시글인 경우 마감기한이 지났거나 멤버모집이 끝났는지 확인 요청
+     * ajax - activity/recruit 게시글인 경우 해당 게시글의 마감 여부 확인 요청
      * @param param
      * @return
      */
@@ -206,7 +206,18 @@ public class BoardController {
         boolean exceededLimitNumber = boardService.isExceededLimitNumber(boardId);
         return deadline||exceededLimitNumber ? true  : false ; // deadline이 넘었거나 제한 인원을 초과했으면 true 반환
     }
-    
+
+    /**
+     * ajax - recruit 게시글인 경우 로그인한 사용자의 참여 여부 요청
+     * @param boardId
+     * @param memberId
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/board/isRecruited")
+    public boolean jobBoardRecruitIsRecruited(@RequestParam(name = "boardId") Long boardId, @RequestParam(name = "memberId")String memberId){
+        return boardService.isRecruited(boardId, memberId);
+    }
     
 
     // ===================== 게시글 좋아요 ===================
@@ -255,22 +266,25 @@ public class BoardController {
      */
     @PostMapping("/board/report")
     public String postMethodName(@ModelAttribute BoardReportDTO dto, 
-                            @RequestParam(name = "category") BoardCategory category,
-                            @RequestParam(name = "searchWord", defaultValue = "") String searchWord,
-                            RedirectAttributes rttr) {
-
+                                @RequestParam(name = "category") BoardCategory category,
+                                @RequestParam(name = "searchWord", defaultValue = "") String searchWord,
+                                RedirectAttributes rttr) {
+        
         // JobBoardReport DB에 저장
         boardService.insertJobBoardReported(dto);
-
+        
         // Board의 report 컬럼 값 수정
         boardService.updateRportedCount(dto.getBoardId());
-
+        
         // 카테고리, 검색어, 페이지
         rttr.addAttribute("category", category);
         rttr.addAttribute("searchWord", searchWord);
         
         return "redirect:/board/list"; // 게시글 목록으로 이동
     }
+    
+    // ===================== recruit 참여 =====================
+
 
     
 } 
