@@ -176,7 +176,7 @@ public class BoardController {
      * @param model
      * @return
      */
-    @GetMapping("board/detail")
+    @GetMapping("/board/detail")
     public String boardDetail(@RequestParam(name = "boardId") Long boardId, 
                             @RequestParam(name = "category") BoardCategory category,
                             @RequestParam(name = "searchWord", defaultValue = "") String searchWord,
@@ -200,7 +200,7 @@ public class BoardController {
      * @return
      */
     @ResponseBody
-    @GetMapping("board/isDead")
+    @GetMapping("/board/isDead")
     public boolean jobBoardIsDead(@RequestParam(name = "boardId") Long boardId) {
         boolean deadline = boardService.isDeadline(boardId);
         boolean exceededLimitNumber = boardService.isExceededLimitNumber(boardId);
@@ -217,7 +217,7 @@ public class BoardController {
      * @return
      */
     @ResponseBody
-    @GetMapping("board/getLikeCount")
+    @GetMapping("/board/getLikeCount")
     public long getBoardLikeCount(@RequestParam(name = "boardId")Long boardId) {
         return boardService.getLikeCount(boardId);
     }
@@ -228,7 +228,7 @@ public class BoardController {
      * @return 좋아요 설정된 상태 → true / 좋아요 해제된 상태 → false
      */
     @ResponseBody
-    @GetMapping("board/isLikeCount")
+    @GetMapping("/board/isLikeCount")
     public boolean boardIsLikeCount(@RequestParam(name = "boardId")Long boardId, @RequestParam(name = "memberId") String memberId) {
         return boardService.isBoardLikedByMember(boardId,memberId);
     }
@@ -269,8 +269,6 @@ public class BoardController {
         
         return "redirect:/board/list"; // 해당 게시글 화면
     }
-
-
 
     
 } 

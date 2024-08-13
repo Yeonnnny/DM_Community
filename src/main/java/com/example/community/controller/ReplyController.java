@@ -21,7 +21,7 @@ public class ReplyController {
      * @return
      */
     @ResponseBody
-    @GetMapping("reply/getReplyCount")
+    @GetMapping("/reply/getReplyCount")
     public long getReplyCount(@RequestParam(name = "boardId")Long boarId) {
         return replyService.getBoardReplyCount(boarId);
     }
