@@ -301,8 +301,8 @@ public class BoardController {
                                 @RequestParam(name = "memberGroup") String memberGroup,
                                 @RequestParam(name = "memberPhone") String memberPhone,
                                 @RequestParam(name = "memberEmail") String memberEmail) {
-        // 해당 게시글에 해당 사용자가 이미 참여한 경우
-        if(boardService.isRecruited(boardId, memberId)) return false;
+        // 해당 게시글에 해당 사용자의 참여여부 확인
+        if(boardService.isRecruited(boardId, memberId)) return false; // 이미 참여함
 
         // BoardRecruitDTO 생성
         JobBoardRecruitDTO jobBoardRecruitDTO = new JobBoardRecruitDTO(null, boardId, memberId, memberGroup, memberPhone, memberEmail);
