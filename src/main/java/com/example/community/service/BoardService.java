@@ -1,5 +1,6 @@
 package com.example.community.service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ import com.example.community.entity.MemberEntity;
 import com.example.community.repository.BoardReportRepository;
 import com.example.community.repository.BoardRepository;
 import com.example.community.repository.JobBoardRepository;
+import com.example.community.repository.LikeRepository;
 import com.example.community.repository.MemberRepository;
 import com.example.community.util.FileService;
 
@@ -35,6 +37,7 @@ public class BoardService {
     private final JobBoardRepository jobBoardRepository;
     private final MemberRepository memberRepository;
     private final BoardReportRepository boardReportedRepository;
+    private final LikeRepository likeRepository;
 
 
     // 첨부 파일 경로 요청
@@ -48,23 +51,6 @@ public class BoardService {
 
 
     // ======================== 기본 CRUD ========================
-
-    /**
-     * 전달받은 boardId에 해당하는 게시글 엔티티 반환하는 함수
-     * @param boardId
-     * @return
-     */
-    public BoardDTO selectOne(Long boardId) {
-        BoardDTO dto = new BoardDTO();
-        
-        Optional<BoardEntity> boardEntity = boardRepository.findById(boardId);
-        // 게시글 Entity->DTO변환
-        if (boardEntity.isPresent()) {
-            BoardEntity entity = boardEntity.get();
-            dto = BoardDTO.toDTO(entity, entity.getMemberEntity().getMemberId());
-        }
-        return dto;
-    }
 
 
     /**
@@ -323,6 +309,105 @@ public class BoardService {
         jobBoardRepository.save(JobBoardEntity.toEntity(dto, boardEntity)); // JobBoard에 저장 
     }
     
+    // ======================== 게시글 조회 ========================
+
+    /**
+     * 전달받은 boardId에 해당하는 JobBoardEntity 반환하는 함수
+     * @param boardId
+     * @return
+     */
+    private JobBoardEntity selectJobBoardEntity (Long boardId){
+        return jobBoardRepository.findById(boardId).get();
+    }
+
+    /**
+     * 전달받은 boardId에 해당하는 게시글 DTO반환하는 함수 (job에 관련된 정보가 있는 경우는 해당 정보도 포함해 반환함)
+     * @param boardId
+     * @return
+     */
+    public BoardDTO selectOne(Long boardId) {
+        BoardEntity boardEntity = selectBoardEntity(boardId); // BoardEntity
+        
+        // Entity -> DTO로 변환
+        BoardDTO boardDTO = BoardDTO.toDTO(boardEntity, boardEntity.getMemberEntity().getMemberId());
+
+        // activity/recruit 게시글인 경우, JobBoardEntity 값을 가져와서 BoardDTO에서 관련 속성값을 세팅
+        if (boardDTO.getCategory()==BoardCategory.activity || boardDTO.getCategory()==BoardCategory.recruit) {
+            JobBoardEntity jobBoardEntity = selectJobBoardEntity(boardId); // JobBoardEntity
+            // deadline, limitNumber, currentNumber 값 세팅
+            boardDTO.setDeadline(jobBoardEntity.getDeadline());
+            boardDTO.setLimitNumber(jobBoardEntity.getLimitNumber());
+            boardDTO.setCurrentNumber(jobBoardEntity.getCurrentNumber());
+        }
+
+        return boardDTO;
+    }
+
+    /**
+     * 전달받은 게시글의 조회수 증가시키는 함수
+     * @param boardId
+     */
+    public void increaseHitCount(Long boardId) {
+        BoardEntity boardEntity = selectBoardEntity(boardId); // boardEntity
+        boardEntity.setHitCount(boardEntity.getHitCount()+1); // 1 증가
+    }
+
+
+    /**
+     * 전달받은 boardId에 해당하는 JobBoardEntity의 deadline과 현재시간을 비교해, deadline이 현재 시간보다 이전이면 true, 반대의 경우는 false를 반환하는 함수
+     * @param boardId
+     * @return
+     */
+    public boolean isDeadline(Long boardId) {
+        JobBoardEntity jobBoardEntity = selectJobBoardEntity(boardId); // 해당 jobBoardEntity
+        return jobBoardEntity.getDeadline().isAfter(LocalDateTime.now()) ? false : true; // deadline이 현재 시간보다 이전이면 true 반환
+    }
+    
+    
+    /**
+     * 전달받은 boardId에 해당하는 JobBoardEntity의 limitNumber와 currentNumber를 비교해 limit수가 current수보다 작거나 같은 경우 true 반환 (큰 경우는 false 반환)하는 함수
+     * @param boardId
+     * @return
+     */
+    public boolean isExceededLimitNumber(Long boardId) {
+        JobBoardEntity jobBoardEntity = selectJobBoardEntity(boardId); // 해당 jobBoardEntity
+        return jobBoardEntity.getLimitNumber()<=jobBoardEntity.getCurrentNumber() ? true : false; // limit 수가 current 수보가 작나 같으면 true 반환
+    }
+
+    
+
+    // ======================== 게시글 좋아요 ========================
+    
+    /**
+     * 전달받은 boardId에 해당하는 게시글의 좋아요수 반환하는 함수
+     * @param boardId
+     * @return
+     */
+    public long getLikeCount(Long boardId) {
+        BoardEntity boardEntity = selectBoardEntity(boardId); // boardEntity
+        return likeRepository.countByBoardEntity(boardEntity);
+    }
+
+    /**
+     * 전달받은 memberId에 해당하는 MemberEntity 반환하는 함수
+     * @param memberId
+     * @return
+     */
+    private MemberEntity selectMemberEntity(String memberId){
+        return memberRepository.findById(memberId).get();
+    }
+
+    /**
+     * 전달받은 memberId에 해당하는 회원이 전달받은 boardId에 해당하는 게시글에 좋아요 눌렀는지 여부 반환하는 함수
+     * @param boardId
+     * @param memberId
+     * @return
+     */
+    public boolean isBoardLikedByMember(Long boardId, String memberId) {
+        MemberEntity memberEntity = selectMemberEntity(memberId);
+        BoardEntity boardEntity = selectBoardEntity(boardId);
+        return likeRepository.findByMemberAndBoard(memberEntity, boardEntity).isPresent();
+    }
 
     
     // ======================== 게시글 신고 ========================
@@ -358,6 +443,21 @@ public class BoardService {
         // 해당 게시글의 reported 컬럼 true로 변경
         updateRportedCount(dto.getBoardId());
     }
+
+
+    
+
+
+    
+
+
+    
+
+
+
+
+
+
 
 
 
