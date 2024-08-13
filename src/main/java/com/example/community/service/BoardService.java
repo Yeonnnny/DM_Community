@@ -498,7 +498,7 @@ public class BoardService {
         // 기존 파일 처리 및 새로운 파일 저장
         handleExistingFile(boardEntity, newFileDetails);
 
-        // Board 수정 (제목, 내용)
+        // Board 수정 (제목, 내용, 수정날짜)
         updateBoardContent(boardEntity, boardDTO);
 
         // activity/recruit 게시글인 경우 
@@ -535,11 +535,12 @@ public class BoardService {
     }
 
     /**
-     * BoardEntity의 title, content 수정
+     * BoardEntity의 title, content, updateTime 수정
      */
     private void updateBoardContent(BoardEntity boardEntity, BoardDTO boardDTO) {
         boardEntity.setTitle(boardDTO.getTitle());
         boardEntity.setContent(boardDTO.getContent());
+        boardEntity.setUpdateDate(LocalDateTime.now());
     }
 
     /**
