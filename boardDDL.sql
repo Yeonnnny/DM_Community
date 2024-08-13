@@ -1,3 +1,12 @@
+-- member (임시로 만듦)
+DROP TABLE IF EXISTS member;
+
+create table member(
+	member_id varchar(30) ,
+    member_group varchar(20),
+	primary key (member_id)
+);
+
 
 -- 게시글 Table
 
@@ -7,11 +16,11 @@ CREATE TABLE board (
     board_id BIGINT NOT NULL AUTO_INCREMENT,
     member_id VARCHAR(30) NOT NULL,
     member_group VARCHAR(20) NOT NULL,
-    category VARCHAR(50) NOT NULL CHECK (category IN ('code', 'project', 'activity', 'recruit', 'free', 'group','info')),
+    category VARCHAR(20) NOT NULL CHECK (category IN ('code', 'project', 'activity', 'recruit', 'free', 'group','info')),
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
     create_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    update_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    update_date TIMESTAMP,
     hit_count INT DEFAULT 0,
     like_count INT DEFAULT 0,
     original_file_name VARCHAR(200),
@@ -51,7 +60,7 @@ CREATE TABLE board_report(
     report_id BIGINT NOT NULL AUTO_INCREMENT,
     board_id BIGINT NOT NULL,
     member_id VARCHAR(30) NOT NULL, -- 신고 당한 게시글 작성자 ID
-    category VARCHAR(200) NOT NULL CHECK (category IN ( 'IllegalContent', 'ViolentContent', 'PrivacyViolation', 'Spam', 'ETC')),
+    category VARCHAR(100) NOT NULL CHECK (category IN ( 'IllegalContent', 'ViolentContent', 'PrivacyViolation', 'Spam', 'ETC')),
     reason TEXT,
     report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (report_id),
@@ -98,7 +107,7 @@ CREATE TABLE reply (
     update_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     like_count INT DEFAULT 0,
     PRIMARY KEY (reply_id),
-    FOREIGN KEY (board_id) REFERENCES board(board_id) -- board 테이블의 board_id를 FK로 참조
+    FOREIGN KEY (board_id) REFERENCES board(board_id), -- board 테이블의 board_id를 FK로 참조
     FOREIGN KEY (member_id) REFERENCES member(member_id) -- member 테이블의 member_id를 FK로 참조
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
