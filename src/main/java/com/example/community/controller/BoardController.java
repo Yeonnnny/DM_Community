@@ -166,10 +166,75 @@ public class BoardController {
     }
     
 
+    // =================== 게시글 조회 =====================
+
+    /**
+     * 게시글 조회 화면 요청
+     * @param boardId
+     * @param category
+     * @param searchWord
+     * @param model
+     * @return
+     */
+    @GetMapping("board/detail")
+    public String boardDetail(@RequestParam(name = "boardId") Long boardId, 
+                            @RequestParam(name = "category") BoardCategory category,
+                            @RequestParam(name = "searchWord", defaultValue = "") String searchWord,
+                            Model model) {
+        
+        // boardId에 해당하는 게시글 DTO 
+        BoardDTO board = boardService.selectOne(boardId);
+        // 조회수 증가
+        boardService.increaseHitCount(boardId);
+
+        model.addAttribute("board", board);
+        model.addAttribute("searchWord", searchWord);
+        model.addAttribute("category", category);
+
+        return "board/detail";
+    }
+
+    /**
+     * ajax - activity/recruit 게시글인 경우 마감기한이 지났거나 멤버모집이 끝났는지 확인 요청
+     * @param param
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("board/isDead")
+    public boolean jobBoardIsDead(@RequestParam(name = "boardId") Long boardId) {
+        boolean deadline = boardService.isDeadline(boardId);
+        boolean exceededLimitNumber = boardService.isExceededLimitNumber(boardId);
+        return deadline||exceededLimitNumber ? true  : false ; // deadline이 넘었거나 제한 인원을 초과했으면 true 반환
+    }
+    
+    
+
     // ===================== 게시글 좋아요 ===================
 
     /**
-     * Ajax - 게시글 좋아요 요청 및 해제
+     * ajax - 게시글 좋아요수 요청
+     * @param param
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("board/getLikeCount")
+    public long getBoardLikeCount(@RequestParam(name = "boardId")Long boardId) {
+        return boardService.getLikeCount(boardId);
+    }
+
+    /**
+     * ajax - 전달받은 memberId가 해당 게시글 좋아요 눌렀는지 확인을 위한 요청
+     * @param boardId
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("board/isLikeCount")
+    public boolean boardIsLikeCount(@RequestParam(name = "boardId")Long boardId, @RequestParam(name = "memberId") String memberId) {
+        return boardService.isBoardLikedByMember(boardId,memberId);
+    }
+    
+    /**
+     * ajax - 게시글 좋아요 요청 및 해제
      * @param boardId
      * @return
      */
@@ -179,27 +244,6 @@ public class BoardController {
         return new String();
     }
 
-    /**
-     * Ajax - 게시글 좋아요 수 요청
-     * @param boardId
-     * @return
-     */
-    @ResponseBody
-    @GetMapping("/board/getLike")
-    public String getBoardLikeCount(@RequestParam(name = "boardId") Long boardId) {
-        return new String();
-    }
-
-    /**
-     * Ajax - 게시글에 대한 현재 로그인한 사용자 좋아요 여부 
-     * @param boardId
-     * @return
-     */
-    @ResponseBody
-    @GetMapping("/board/isLikedByUser")
-    public String boardIsLikedByUser(@RequestParam(name = "boardId") Long boardId, @RequestParam(name = "memberId") String memberId) {
-        return new String();
-    }
     
 
     // ===================== 게시글 신고 =====================
