@@ -153,14 +153,13 @@ public class BoardController {
     @PostMapping("/board/write")
     public String writeBoard(@ModelAttribute BoardDTO dto, Model model) {
         
+        // DEFAULT 값 세팅
+        dto.setHitCount(0);
+        dto.setLikeCount(0);
+        dto.setReported(false);
+
         // 전달받은 게시글 DTO를 Board 테이블에 삽입
         boardService.insertBoard(dto);
-        
-        // activity or recruit -> JobBoard 테이블에 정보 삽입 
-        if (dto.getCategory()==BoardCategory.activity || dto.getCategory()==BoardCategory.recruit) {
-            JobBoardDTO jobBoardDTO = new JobBoardDTO(dto.getBoardId(), dto.getDeadline(), dto.getLimitNumber(), dto.getCurrentNumber());
-            boardService.insertJobBoard(jobBoardDTO);
-        }
         
         // 게시글 목록에 필요한 파라미터 값 세팅 후 model에 담기
         model.addAttribute("category", dto.getCategory());

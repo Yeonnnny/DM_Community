@@ -84,7 +84,9 @@ public class BoardService {
 
     // ======================== 첨부파일 관련 ========================
 
-    // 첨부파일(originalFileName, savedFileName)에 대한 구조체
+    /**
+     * originalFileName, savedFileName을 멤버변수로 가지고 있는 객체
+     */
     private static class FileDetails {
         private final String originalFileName;
         private final String savedFileName;
@@ -106,7 +108,7 @@ public class BoardService {
     /**
      * uploadFile이 null이 아닌 경우 첨부파일을 저장하고, 원본파일명과 저장파일명이 담긴 FileDetails 객체 반환하는 함수
      * @param uploadFile
-     * @return FileDetails (원본파일명, 저장파일명) 
+     * @return FileDetails 객체
      */
     private FileDetails handleFileUpload(MultipartFile uploadFile) {
         if (!uploadFile.isEmpty()) {
@@ -254,65 +256,45 @@ public class BoardService {
     
 
     // ======================== 게시글 생성 ========================
-    
-    /**
-     * 전달받은 memberId에 해당하는 게시글 작성자 MemberEntity 반환하는 함수
-     * @param memberId
-     * @return
-     */
-    private MemberEntity findMemberEntity(String memberId){
-        return memberRepository.findById(memberId).get();
-    }
-
-    /**
-     * 전달받은 게시글 DTO의 첨부파일 여부 확인하는 함수 
-     */
-    private boolean uploadFileisExist(BoardDTO dto){
-        return !dto.getUploadFile().isEmpty();
-    }
-
-    /**
-     * BoardDTO의 originalFileName 및 SavedFileName을 세팅하는 함수 
-     */
-    @Transactional
-    private void setFileName(BoardDTO dto, String originalFileName, String savedFileName){
-        dto.setOriginalFileName(originalFileName);
-        dto.setSavedFileName(savedFileName);
-    }
-
-    /**
-     * 전달받은 게시글 DTO에 첨부파일이 존재하여 첨부파일 저장 및 해당 DTO의 파일명을 세팅하는 함수
-     */
-    private void saveFile(BoardDTO dto){
-        String originalFileName = dto.getUploadFile().getOriginalFilename();
-        String savedFileName = FileService.saveFile(dto.getUploadFile(), uploadPath);
-        setFileName(dto, originalFileName, savedFileName);
-    }
 
     /**
      * 전달받은 게시글 DTO를 Entity로 변환 후 Board DB에 저장하는 함수
      */
     public void insertBoard(BoardDTO dto) {
+        // 게시글 작성자 데이터(부모테이블) 가져오기
+        MemberEntity memberEntity = selectMemberEntity(dto.getMemberId());
 
-        MemberEntity memberEntity = findMemberEntity(dto.getMemberId()); // 작성자 Entity
-
-        // 첨부파일이 있으면 파일저장 및 파일명 세팅
-        if (uploadFileisExist(dto)) {
-            saveFile(dto);
+        // 첨부파일이 있는 경우 파일 저장 후 DTO의 파일명 세팅
+        FileDetails fileDetails = handleFileUpload(dto.getUploadFile());
+        if (fileDetails != null) {
+            dto.setOriginalFileName(fileDetails.getOriginalFileName());
+            dto.setSavedFileName(fileDetails.getSavedFileName());
         }
 
         // 게시글 DTO -> 엔티티 변환 후 DB 저장
         boardRepository.save(BoardEntity.toEntity(dto, memberEntity));
+
+        // activity/recruit 게시글인 경우 
+        if (dto.getCategory()==BoardCategory.activity || dto.getCategory()==BoardCategory.recruit) {
+            insertJobBoard(dto); // JobBoard DB 저장
+        }
+
     }
 
     /**
-     * 전달받은 JobBoardDTO를 Entity로 변환 후 JobBoard DB에 저장하고, 저장여부 반환하는 함수
+     * 전달받은 BoardDTO로 JobBoardEntity 생성 후 JobBoard DB에 저장하는 함수
      * @param dto
      * @return
      */
-    public void insertJobBoard(JobBoardDTO dto) {
-        BoardEntity boardEntity = selectBoardEntity(dto.getBoardId()); // 게시글 Entity 
-        jobBoardRepository.save(JobBoardEntity.toEntity(dto, boardEntity)); // JobBoard에 저장 
+    public void insertJobBoard(BoardDTO boardDTO) {
+        BoardEntity boardEntity = selectBoardEntity(boardDTO.getBoardId());
+        JobBoardEntity jobBoardEntity = JobBoardEntity.builder()
+                                                    .boardEntity(boardEntity)
+                                                    .deadline(boardDTO.getDeadline())
+                                                    .limitNumber(boardDTO.getLimitNumber())
+                                                    .currentNumber(0) // DEFAULT : 0
+                                                    .build();
+        jobBoardRepository.save(jobBoardEntity);
     }
 
 
