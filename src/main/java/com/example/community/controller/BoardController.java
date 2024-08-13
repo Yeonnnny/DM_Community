@@ -310,8 +310,8 @@ public class BoardController {
         if(boardService.saveJobBoardRecruit(jobBoardRecruitDTO)!=null){
             boardService.updateCurrentNumber(boardId); // jobBoardEntity의 currentNumber 변경 
             return true;
-        }else{ // DB 저장 실패
-            return false;
+        }else{ 
+            return false; // DB 저장 실패
         }
     }
     
