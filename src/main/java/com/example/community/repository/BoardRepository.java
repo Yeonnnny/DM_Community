@@ -3,6 +3,7 @@ package com.example.community.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -71,6 +72,18 @@ public interface BoardRepository extends JpaRepository<BoardEntity, Long> {
         Page<BoardListDTO> findBoardListByCategoryAndTitleContaining(@Param("category") BoardCategory category, 
                                                                         @Param("searchWord") String searchWord, 
                                                                         Pageable pageRequest);
+
+        // boardId에 해당하는 Entity의 likeCount를 1 증가시킴
+        @Modifying
+        @Query("UPDATE BoardEntity b SET b.likeCount = b.likeCount + 1 WHERE b.boardId = :boardId")
+        void incrementLikeCount(Long boardId);
+        
+        // boardId에 해당하는 Entity의 likeCount를 1 감소시킴 (연산 시 likeCount가 0보다 작은 경우는 0으로 세팅)
+        @Modifying
+        @Query("UPDATE BoardEntity b " +
+                "SET b.likeCount = CASE WHEN b.likeCount - 1 < 0 THEN 0 ELSE b.likeCount - 1 END " +
+                "WHERE b.boardId = :boardId")
+        void decrementLikeCount(Long boardId);
 
 
 }

@@ -435,23 +435,27 @@ public class BoardService {
      * @param memberId
      * @return 좋아요 설정 → true / 좋아요 해제 → false
      */
-    public boolean likeBoard(Long boardId, String memberId) {
+    @Transactional
+    public boolean toggleLikeOnBoard(Long boardId, String memberId) {
         BoardEntity boardEntity = selectBoardEntity(boardId); // boardEntity
         MemberEntity memberEntity = selectMemberEntity(memberId); // memberEntity
 
-        Optional<LikeEntity> likeEntity = likeRepository.findByMemberAndBoard(memberEntity, boardEntity);
+        Optional<LikeEntity> likeEntityOptional = likeRepository.findByMemberAndBoard(memberEntity, boardEntity);
         
-        if (likeEntity.isPresent()) { // 좋아요가 이미 설정된 상태
-            likeRepository.delete(likeEntity.get()); // 해당 데이터 삭제
-            return false; 
-        } else{ // 좋아요가 해제된 상태 
-            LikeEntity like = new LikeEntity(); // LikeEntity 생성
-            // LikeEntity 속성값 세팅
-            like.setBoardEntity(boardEntity);
-            like.setMemberEntity(memberEntity);
-            // Like DB에 저장
-            likeRepository.save(like);
-            return true;
+        if (likeEntityOptional.isPresent()) { 
+            likeRepository.delete(likeEntityOptional.get()); // delete from Like DB
+            boardRepository.decrementLikeCount(boardId); // boardEntity의 likeCount - 1
+            return false; // 좋아요 해제
+        } else{ 
+            // LikeEntity 생성
+            LikeEntity likeEntity = LikeEntity.builder()
+                                        .boardEntity(boardEntity)
+                                        .memberEntity(memberEntity)
+                                        .build();
+            
+            likeRepository.save(likeEntity); // save to Like DB
+            boardRepository.incrementLikeCount(boardId); // boardEntity의 likeCount + 1
+            return true; // 좋아요 설정
         }
     }
 

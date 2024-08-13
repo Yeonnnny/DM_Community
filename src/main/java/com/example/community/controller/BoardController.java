@@ -256,7 +256,7 @@ public class BoardController {
     @ResponseBody
     @GetMapping("/board/likeUpdate")
     public boolean boardLikeUpdate(@RequestParam(name = "boardId") Long boardId, @RequestParam(name = "memberId") String memberId) {
-        return boardService.likeBoard(boardId,memberId);
+        return boardService.toggleLikeOnBoard(boardId,memberId);
     }
 
     
