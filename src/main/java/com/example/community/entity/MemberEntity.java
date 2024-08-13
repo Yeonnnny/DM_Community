@@ -40,10 +40,15 @@ public class MemberEntity {
     // 2) JobBoardRecruit
     @OneToMany(mappedBy = "memberEntity", cascade = CascadeType.REMOVE, fetch=FetchType.LAZY, orphanRemoval = true)
     @OrderBy("board_id")
-    private List<JobBoardRecruitEntity> JobBoardRecruitEntities;
-
-    // 3) Like
+    private List<JobBoardRecruitEntity> jobBoardRecruitEntities;
+    
+    // 3) Reply
+    @OneToMany(mappedBy = "memberEntity", cascade = CascadeType.REMOVE, fetch=FetchType.LAZY, orphanRemoval = true)
+    @OrderBy("create_date")
+    private List<ReplyEntity> replyEntities;
+    
+    // 4) Like
     @OneToMany(mappedBy = "memberEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
-    @OrderBy("member_id")
+    @OrderBy("board_id")
     private List<LikeEntity> likeEntities;
 }
