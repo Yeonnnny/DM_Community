@@ -2,9 +2,6 @@ package com.example.community.dto;
 
 import java.time.LocalDateTime;
 
-import org.springframework.web.multipart.MultipartFile;
-
-import com.example.community.dto.check.BoardCategory;
 import com.example.community.entity.JobBoardEntity;
 
 import lombok.AllArgsConstructor;

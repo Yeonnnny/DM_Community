@@ -7,13 +7,11 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
-import com.example.community.dto.JobBoardDTO;
 import com.example.community.dto.JobBoardRecruitDTO;
 import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.check.BoardCategory;
 import com.example.community.dto.combine.BoardListDTO;
-import com.example.community.entity.JobBoardRecruitEntity;
 import com.example.community.service.BoardService;
 import com.example.community.util.PageNavigator;
 
@@ -26,10 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-
-
 
 
 @Slf4j

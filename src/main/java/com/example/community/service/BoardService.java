@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
-import com.example.community.dto.JobBoardDTO;
 import com.example.community.dto.JobBoardRecruitDTO;
 import com.example.community.dto.check.BoardCategory;
 import com.example.community.dto.combine.BoardListDTO;
