@@ -14,11 +14,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.JobBoardDTO;
+import com.example.community.dto.LikeDTO;
 import com.example.community.dto.check.BoardCategory;
 import com.example.community.dto.combine.BoardListDTO;
 import com.example.community.entity.BoardEntity;
 import com.example.community.entity.BoardReportEntity;
 import com.example.community.entity.JobBoardEntity;
+import com.example.community.entity.LikeEntity;
 import com.example.community.entity.MemberEntity;
 import com.example.community.repository.BoardReportRepository;
 import com.example.community.repository.BoardRepository;
@@ -401,12 +403,39 @@ public class BoardService {
      * 전달받은 memberId에 해당하는 회원이 전달받은 boardId에 해당하는 게시글에 좋아요 눌렀는지 여부 반환하는 함수
      * @param boardId
      * @param memberId
-     * @return
+     * @return 좋아요 설정된 상태 → true / 좋아요 해제된 상태 → false
      */
     public boolean isBoardLikedByMember(Long boardId, String memberId) {
         MemberEntity memberEntity = selectMemberEntity(memberId);
         BoardEntity boardEntity = selectBoardEntity(boardId);
         return likeRepository.findByMemberAndBoard(memberEntity, boardEntity).isPresent();
+    }
+
+    
+    /**
+     * member가 board에 대해 이미 좋아요를 눌렀던 상태라면 좋아요 해제하고, 좋아요가 해제된 상태라면 좋아요 설정하는 함수 
+     * @param boardId
+     * @param memberId
+     * @return 좋아요 설정 → true / 좋아요 해제 → false
+     */
+    public boolean likeBoard(Long boardId, String memberId) {
+        BoardEntity boardEntity = selectBoardEntity(boardId); // boardEntity
+        MemberEntity memberEntity = selectMemberEntity(memberId); // memberEntity
+
+        Optional<LikeEntity> likeEntity = likeRepository.findByMemberAndBoard(memberEntity, boardEntity);
+        
+        if (likeEntity.isPresent()) { // 좋아요가 이미 설정된 상태
+            likeRepository.delete(likeEntity.get()); // 해당 데이터 삭제
+            return false; 
+        } else{ // 좋아요가 해제된 상태 
+            LikeEntity like = new LikeEntity(); // LikeEntity 생성
+            // LikeEntity 속성값 세팅
+            like.setBoardEntity(boardEntity);
+            like.setMemberEntity(memberEntity);
+            // Like DB에 저장
+            likeRepository.save(like);
+            return true;
+        }
     }
 
     
@@ -443,6 +472,8 @@ public class BoardService {
         // 해당 게시글의 reported 컬럼 true로 변경
         updateRportedCount(dto.getBoardId());
     }
+
+
 
 
     

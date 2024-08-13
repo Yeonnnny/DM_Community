@@ -225,7 +225,7 @@ public class BoardController {
     /**
      * ajax - 전달받은 memberId가 해당 게시글 좋아요 눌렀는지 확인을 위한 요청
      * @param boardId
-     * @return
+     * @return 좋아요 설정된 상태 → true / 좋아요 해제된 상태 → false
      */
     @ResponseBody
     @GetMapping("board/isLikeCount")
@@ -236,12 +236,12 @@ public class BoardController {
     /**
      * ajax - 게시글 좋아요 요청 및 해제
      * @param boardId
-     * @return
+     * @return 좋아요 설정 → true / 좋아요 해제 → false
      */
     @ResponseBody
     @GetMapping("/board/likeUpdate")
-    public String boardLikeUpdate(@RequestParam(name = "boardId") Long boardId, @RequestParam(name = "memberId") String memberId) {
-        return new String();
+    public boolean boardLikeUpdate(@RequestParam(name = "boardId") Long boardId, @RequestParam(name = "memberId") String memberId) {
+        return boardService.likeBoard(boardId,memberId);
     }
 
     
