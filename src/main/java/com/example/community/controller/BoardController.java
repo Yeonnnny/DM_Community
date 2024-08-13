@@ -8,10 +8,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
 import com.example.community.dto.JobBoardDTO;
+import com.example.community.dto.JobBoardRecruitDTO;
 import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.check.BoardCategory;
 import com.example.community.dto.combine.BoardListDTO;
+import com.example.community.entity.JobBoardRecruitEntity;
 import com.example.community.service.BoardService;
 import com.example.community.util.PageNavigator;
 
@@ -24,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 
@@ -284,7 +288,34 @@ public class BoardController {
     }
     
     // ===================== recruit 참여 =====================
+    
+    /**
+     * ajax - 게시글 참여 처리 요청
+     * @param param
+     * @return 참여 성공 → true / 참여 실패(or 이미 참여한 경우) → false
+     */
+    @ResponseBody
+    @GetMapping("/board/insertBoardRecruit")
+    public boolean insertJobBoardRecruit(@RequestParam(name = "boardId") Long boardId,
+                                @RequestParam(name = "memberId") String memberId,
+                                @RequestParam(name = "memberGroup") String memberGroup,
+                                @RequestParam(name = "memberPhone") String memberPhone,
+                                @RequestParam(name = "memberEmail") String memberEmail) {
+        // 해당 게시글에 해당 사용자가 이미 참여한 경우
+        if(boardService.isRecruited(boardId, memberId)) return false;
 
+        // BoardRecruitDTO 생성
+        JobBoardRecruitDTO jobBoardRecruitDTO = new JobBoardRecruitDTO(null, boardId, memberId, memberGroup, memberPhone, memberEmail);
+        // DB에 저장
+        if(boardService.saveJobBoardRecruit(jobBoardRecruitDTO)!=null){
+            boardService.updateCurrentNumber(boardId); // jobBoardEntity의 currentNumber 변경 
+            return true;
+        }else{ // DB 저장 실패
+            return false;
+        }
+    }
+    
+    
 
     
 } 

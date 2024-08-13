@@ -14,11 +14,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.community.dto.BoardDTO;
 import com.example.community.dto.BoardReportDTO;
 import com.example.community.dto.JobBoardDTO;
+import com.example.community.dto.JobBoardRecruitDTO;
 import com.example.community.dto.check.BoardCategory;
 import com.example.community.dto.combine.BoardListDTO;
 import com.example.community.entity.BoardEntity;
 import com.example.community.entity.BoardReportEntity;
 import com.example.community.entity.JobBoardEntity;
+import com.example.community.entity.JobBoardRecruitEntity;
 import com.example.community.entity.LikeEntity;
 import com.example.community.entity.MemberEntity;
 import com.example.community.repository.BoardReportRepository;
@@ -455,7 +457,7 @@ public class BoardService {
 
     
     // ======================== 게시글 신고 ========================
-
+    
     /**
      * 게시글 신고 내용이 담긴 DTO를 Entity로 변환 후 DB에 저장하는 함수 
      * @param dto
@@ -467,7 +469,7 @@ public class BoardService {
         // BoardReported DB에 저장
         boardReportedRepository.save(entity);
     }
-
+    
     /**
      * 해당 boardId에 해당하는 게시글의 reported 값을 true로 변환하는 함수
      * @param boardId
@@ -477,6 +479,39 @@ public class BoardService {
         BoardEntity boardEntity = selectBoardEntity(boardId);        
         //reported 값 true로 변경
         boardEntity.setReported(true);
+    }
+    
+    // ======================== recruit 참여 ========================
+
+    /**
+     * recruit 게시글 참여 신청 - JobBoardRecruitDTO를 엔티티로 변환한 후 JobBoardRecruit DB에 저장하는 함수
+     * @param jobBoardRecruitDTO
+     * @return 참여 성공 → jobBoardRecruitEntity / 참여 실패 → null
+     */
+    public JobBoardRecruitEntity saveJobBoardRecruit(JobBoardRecruitDTO jobBoardRecruitDTO) { 
+
+        Optional<JobBoardEntity> jobBoardEntity = jobBoardRepository.findById(jobBoardRecruitDTO.getBoardId());
+
+        if (jobBoardEntity.isPresent()) {
+            // 부모 Entity 준비
+            JobBoardEntity jobBoard = jobBoardEntity.get(); // jobBoardEntity
+            MemberEntity member = selectMemberEntity(jobBoardRecruitDTO.getMemberId()); // memberEntity
+            // DTO -> Entity
+            JobBoardRecruitEntity jobBoardRecruitEntity = JobBoardRecruitEntity.toEntity(jobBoardRecruitDTO, jobBoard, member);
+            // JobBoardRecruit DB에 저장
+            return jobBoardRecruitRepository.save(jobBoardRecruitEntity);
+        } else return null; // 저장 실패
+    }
+
+
+    /**
+     * 전달받은 boardId에 해당하는 jobBoardEntity의 currrentNumber 값을 1 증가시키는 함수
+     * @param boardId
+     */
+    @Transactional
+    public void updateCurrentNumber(Long boardId) {
+        JobBoardEntity jobBoardEntity = selectJobBoardEntity(boardId);
+        jobBoardEntity.setCurrentNumber(jobBoardEntity.getCurrentNumber()+1);
     }
 
 
