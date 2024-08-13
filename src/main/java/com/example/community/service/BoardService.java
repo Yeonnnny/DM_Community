@@ -569,6 +569,22 @@ public class BoardService {
         jobBoardEntity.setDeadline(boardDTO.getDeadline());
         jobBoardEntity.setLimitNumber(boardDTO.getLimitNumber());
     }
+
+    /**
+     * boardId에 해당하는 JobBoardEntity의 deadline을 현재 시간보다 1초전으로 변경하는 함수
+     * @param boardId 
+     * @return 변경 성공 → true / 변경 실패 → false
+     */
+    @Transactional
+    public boolean updateDeadLine(Long boardId) {
+        try {
+            JobBoardEntity jobBoardEntity = selectJobBoardEntity(boardId);
+            jobBoardEntity.setDeadline(LocalDateTime.now().minusSeconds(1)); // 현재 시간 -1초 전으로 수정
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
     
 
 

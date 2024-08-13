@@ -377,6 +377,17 @@ public class BoardController {
         return "board/detail";
     }
     
+    /**
+     * ajax - 게시글 작성자의 마감 요청
+     * @param param
+     * @return 마감 처리 성공 → true / 마감 처리 실패 → false
+     */
+    @ResponseBody
+    @GetMapping("/board/updateDeadline")
+    public boolean updateDeadline(@RequestParam(name = "boardId") Long boardId) {
+        return boardService.updateDeadLine(boardId);
+    }
+    
     
 
     
