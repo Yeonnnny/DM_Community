@@ -20,6 +20,11 @@ public interface LikeRepository extends JpaRepository<LikeEntity, Long>{
     @Query("SELECT l FROM LikeEntity l "+
             "WHERE l.memberEntity = :memberEntity AND l.boardEntity = :boardEntity")
     Optional<LikeEntity> findByMemberAndBoard(@Param("memberEntity") MemberEntity memberEntity, @Param("boardEntity") BoardEntity boardEntity);
+            
+    // 특정 댓글에서 특정 회원이 좋아요를 눌렀는지 확인하는 쿼리
+    @Query("SELECT COUNT(l) > 0 FROM LikeEntity l "+
+        "WHERE l.replyEntity.replyId = :replyId AND l.memberEntity.memberId = :memberId")
+    boolean existsByReplyIdAndMemberId(@Param("replyId")Long replyId, @Param("memberId") String memberId);
 
 
 }
