@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 
 import com.example.community.dto.ReplyDTO;
 import com.example.community.entity.BoardEntity;
+import com.example.community.entity.MemberEntity;
 import com.example.community.entity.ReplyEntity;
 import com.example.community.repository.BoardRepository;
 import com.example.community.repository.LikeRepository;
+import com.example.community.repository.MemberRepository;
 import com.example.community.repository.ReplyRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -21,16 +23,27 @@ import lombok.RequiredArgsConstructor;
 public class ReplyService {
     private final ReplyRepository replyRepository;
     private final BoardRepository boardRepository;
+    private final MemberRepository memberRepository;
     private final LikeRepository likeRepository;
 
-    // ====================== 게시글 조회 ==========================
-
+    // ====================== select 함수 ======================
+    
     /**
      * 전달받은 boardId에 해당하는 BoardEntity를 반환하는 함수
      */
     private BoardEntity selectBoardEntity(Long boardId){
         return boardRepository.findById(boardId).orElseThrow(() -> new EntityNotFoundException("Board not found with ID: " + boardId));
     }
+
+    /**
+     * 전달받은 memberId에 해당하는 MemberEntity를 반환하는 함수
+     */
+    private MemberEntity selectMemberEntity(String memberId){
+        return memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("Board not found with ID: " + memberId));
+    }
+
+    // ====================== 게시글 조회 ==========================
+
 
     /**
      * 전달받은 boardId에 해당하는 게시글의 총 댓글 수를 반환하는 함수
@@ -69,5 +82,18 @@ public class ReplyService {
                 .build();
         }).collect(Collectors.toList());
 
+    }
+
+    // ====================== 댓글 등록 =====================
+
+    /**
+     * 해당 댓글 DTO를 Entity로 변환 후 DB에 저장하는 함수
+     * @param replyDTO
+     */
+    public void createOne(ReplyDTO replyDTO) {
+        BoardEntity boardEntity = selectBoardEntity(replyDTO.getBoardId());  // boardEntity
+        MemberEntity memberEntity = selectMemberEntity(replyDTO.getMemberId()); // memberEntity
+        ReplyEntity replyEntity = ReplyEntity.toEntity(replyDTO, boardEntity, memberEntity); // DTO -> Entity 변환
+        replyRepository.save(replyEntity); // save to Reply
     }
 }
