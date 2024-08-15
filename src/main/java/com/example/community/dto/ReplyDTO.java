@@ -27,6 +27,9 @@ public class ReplyDTO {
     private LocalDateTime updateDate;
     private int likeCount;
 
+    // 로그인한 사용자의 댓글 좋아요 여부 정보를 담기 위한 변수
+    private boolean likeByUser;
+
     public static ReplyDTO toDTO(ReplyEntity entity, Long boardId, String memberId){
         return ReplyDTO.builder()
             .replyId(entity.getReplyId())
