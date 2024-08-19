@@ -126,6 +126,22 @@ public class ReplyController {
         return "";
     }
     
+    // ================== 댓글 좋아요 ==================
+    
+    /**
+     * ajax - 로그인한 사용자의 댓글 좋아요 여부 확인 후 좋아요 설정/해제 처리 요청
+     * @param replyId
+     * @param memberId
+     * @return 좋아요 설정 → true / 좋아요 해제 → false
+     */
+    @ResponseBody
+    @GetMapping("/reply/likeUpdate")
+    public boolean replyLikeUpdate(@RequestParam(name = "replyId") Long replyId,
+                                    @RequestParam(name = "memberId")String memberId) {
+        return replyService.toggleLikeOnReply(replyId, memberId);
+    }
 
+    
+    
 
 }

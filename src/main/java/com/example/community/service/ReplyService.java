@@ -1,13 +1,14 @@
 package com.example.community.service;
 
+import java.util.Optional;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.example.community.dto.ReplyDTO;
 import com.example.community.entity.BoardEntity;
+import com.example.community.entity.LikeEntity;
 import com.example.community.entity.MemberEntity;
 import com.example.community.entity.ReplyEntity;
 import com.example.community.repository.BoardRepository;
@@ -57,7 +58,6 @@ public class ReplyService {
     }
 
     // ====================== 게시글 조회 ==========================
-
 
     /**
      * 전달받은 boardId에 해당하는 게시글의 총 댓글 수를 반환하는 함수
@@ -136,12 +136,44 @@ public class ReplyService {
 
     
     // ====================== 댓글 삭제 =====================
-
+    
     /**
      * 전달 받은 replyId에 해당하는 댓글 데이터 삭제하는 함수
      * @param replyId
      */
     public void deleteOne(Long replyId) {
         replyRepository.deleteById(replyId);
+    }
+    
+    
+    // ====================== 댓글 좋아요 =====================
+    
+    /**
+     * member가 reply에 대해 이미 좋아요를 눌렀던 상태라면 좋아요 해제하고, 좋아요가 해제된 상태라면 좋아요 설정하는 함수
+     * @param replyId
+     * @param memberId
+     * @return 좋아요 설정 → true / 좋아요 해제 → false
+     */
+    @Transactional
+    public boolean toggleLikeOnReply(Long replyId, String memberId) {
+        ReplyEntity replyEntity = selectReplyEntity(replyId); // ReplyEntity
+        MemberEntity memberEntity = selectMemberEntity(memberId); // MemberEntity
+
+        Optional<LikeEntity> likeEntityOptional = likeRepository.findByMemberAndReply(memberEntity, replyEntity);
+
+        if(likeEntityOptional.isPresent()){
+            likeRepository.delete(likeEntityOptional.get()); // delete from Like DB
+            replyEntity.setLikeCount(replyEntity.getLikeCount()-1); // likeCount - 1 
+            return false; // 좋아요 해제
+        }else{
+            // 좋아요 데이터 생성 
+            LikeEntity likeEntity = LikeEntity.builder()
+                                                .replyEntity(replyEntity)
+                                                .memberEntity(memberEntity)
+                                                .build();
+            likeRepository.save(likeEntity); // save to Like DB
+            replyEntity.setLikeCount(replyEntity.getLikeCount()+1); // likeCount + 1
+            return true; // 좋아요 해제
+        }
     }
 }
