@@ -87,6 +87,45 @@ public class ReplyController {
         return ""; // 뭘 반환해여햐지? -> 댓글 목록 요청 함수를 호출하면 되지 않을까?
     }
     
+    // ================== 댓글 수정 ==================
+    
+    /**
+     * ajax - 댓글 내용 수정 처리 요청
+     * @param boardId
+     * @param memberId
+     * @param content
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/reply/update")
+    public String replyUpdate(@RequestParam(name = "boardId") Long boardId,
+                                @RequestParam(name = "memberId") String memberId, 
+                                @RequestParam(name = "content")String content) {
+        ReplyDTO replyDTO = ReplyDTO.builder()
+                                    .boardId(boardId)
+                                    .memberId(memberId)
+                                    .content(content)
+                                    .updateDate(LocalDateTime.now())
+                                    .build();
+        replyService.updateOne(replyDTO);
+        return "";
+    }
+
+
+    // ================== 댓글 삭제 ==================
+    
+    /**
+     * ajax - 댓글 삭제 처리 요청 
+     * @param replyId
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/replyl/delete")
+    public String replyDelete(@RequestParam(name = "boardId") Long replyId) {
+        replyService.deleteOne(replyId);
+        return "";
+    }
+    
 
 
 }

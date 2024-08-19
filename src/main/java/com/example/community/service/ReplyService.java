@@ -16,6 +16,7 @@ import com.example.community.repository.MemberRepository;
 import com.example.community.repository.ReplyRepository;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -30,6 +31,8 @@ public class ReplyService {
     
     /**
      * 전달받은 boardId에 해당하는 BoardEntity를 반환하는 함수
+     * @param boardId
+     * @return boardEntity
      */
     private BoardEntity selectBoardEntity(Long boardId){
         return boardRepository.findById(boardId).orElseThrow(() -> new EntityNotFoundException("Board not found with ID: " + boardId));
@@ -37,9 +40,20 @@ public class ReplyService {
 
     /**
      * 전달받은 memberId에 해당하는 MemberEntity를 반환하는 함수
+     * @param memberId
+     * @return memberEntity
      */
     private MemberEntity selectMemberEntity(String memberId){
-        return memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("Board not found with ID: " + memberId));
+        return memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("Member not found with ID: " + memberId));
+    }
+
+    /**
+     * 전달받은 replyId에 해당하는 ReplyEntity를 반환하는 함수
+     * @param replyId
+     * @return replyEntity
+     */
+    private ReplyEntity selectReplyEntity(Long replyId){
+        return replyRepository.findById(replyId).orElseThrow(() -> new EntityNotFoundException("Reply not found with ID: " + replyId));
     }
 
     // ====================== 게시글 조회 ==========================
@@ -58,7 +72,7 @@ public class ReplyService {
     // ====================== 댓글 목록 =====================
     
     /**
-     * boardId에 대한 댓글DTO 목록 반환 
+     * boardId에 대한 댓글DTO 목록 반환 (특정 memberId의 댓글 좋아요 여부(likeByUser)도 포함시킴)
      * @param boardId
      * @param memberId
      * @return
@@ -95,5 +109,39 @@ public class ReplyService {
         MemberEntity memberEntity = selectMemberEntity(replyDTO.getMemberId()); // memberEntity
         ReplyEntity replyEntity = ReplyEntity.toEntity(replyDTO, boardEntity, memberEntity); // DTO -> Entity 변환
         replyRepository.save(replyEntity); // save to Reply
+    }
+
+
+    // ====================== 댓글 수정 =====================
+
+    /**
+     * 해당 Entity의 일부 속성(content, updateDate)을 전달된 값으로 수정하는 함수
+     * @param replyDTO
+     */
+    @Transactional
+    public void updateOne(ReplyDTO replyDTO) {
+        ReplyEntity replyEntity = selectReplyEntity(replyDTO.getReplyId()); // 기존 ReplyEntity
+        updateReplyContent(replyEntity, replyDTO); // Reply 수정 (content, updateDate)
+    }
+
+    /**
+     * Reply의 content, updateDate 수정 함수
+     * @param replyEntity
+     * @param replyDTO
+     */
+    private void updateReplyContent(ReplyEntity replyEntity, ReplyDTO replyDTO){
+        replyEntity.setContent(replyDTO.getContent());
+        replyEntity.setUpdateDate(replyDTO.getUpdateDate());
+    }
+
+    
+    // ====================== 댓글 삭제 =====================
+
+    /**
+     * 전달 받은 replyId에 해당하는 댓글 데이터 삭제하는 함수
+     * @param replyId
+     */
+    public void deleteOne(Long replyId) {
+        replyRepository.deleteById(replyId);
     }
 }
