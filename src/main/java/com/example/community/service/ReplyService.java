@@ -147,7 +147,7 @@ public class ReplyService {
     
     
     // ====================== 댓글 좋아요 =====================
-    
+
     /**
      * member가 reply에 대해 이미 좋아요를 눌렀던 상태라면 좋아요 해제하고, 좋아요가 해제된 상태라면 좋아요 설정하는 함수
      * @param replyId
@@ -175,5 +175,16 @@ public class ReplyService {
             replyEntity.setLikeCount(replyEntity.getLikeCount()+1); // likeCount + 1
             return true; // 좋아요 해제
         }
+    }
+
+    // ====================== 대댓글 =====================
+
+    /**
+     * 부모 댓글 존재하는지 확인하는 함수
+     * @param parentReplyId
+     * @return 존재 → true 
+     */
+    public boolean existsParentReply(Long parentReplyId) {
+        return replyRepository.existsById(parentReplyId);
     }
 }

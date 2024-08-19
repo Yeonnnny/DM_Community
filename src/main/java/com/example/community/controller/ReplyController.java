@@ -141,7 +141,31 @@ public class ReplyController {
         return replyService.toggleLikeOnReply(replyId, memberId);
     }
 
+    // ================== 대댓글 작성 ==================
     
+
+    @ResponseBody
+    @GetMapping("/reply/createChild")
+    public boolean replyCreateChild(@RequestParam(name = "boardId") Long boardId,
+                                    @RequestParam(name = "parentReplyId") Long parentReplyId,
+                                    @RequestParam(name = "memberId")String memberId,
+                                    @RequestParam(name = "content")String content) {
+        // 부모 댓글 존재 여부 확인
+        if(replyService.existsParentReply(parentReplyId)){
+            // 대댓글 DTO 생성
+            ReplyDTO replyDTO = ReplyDTO.builder()
+                                .boardId(boardId)
+                                .parentReplyId(parentReplyId)
+                                .memberId(memberId)
+                                .content(content)
+                                .createDate(LocalDateTime.now())
+                                .updateDate(null)
+                                .likeCount(0)
+                                .build();
+            replyService.createOne(replyDTO); // 대댓글 저장 (기존 댓글 등록과 동일한 로직)
+            return true; 
+        } else return false;
+    }
     
 
 }
