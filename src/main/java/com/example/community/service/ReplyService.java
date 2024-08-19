@@ -2,6 +2,9 @@ package com.example.community.service;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -71,31 +74,92 @@ public class ReplyService {
 
     // ====================== 댓글 목록 =====================
     
+    // /**
+    //  * boardId에 대한 댓글DTO 목록 반환 (likeByUser 세팅하는 로직 포함)
+    //  * @param boardId
+    //  * @param memberId
+    //  * @return
+    //  */
+    // public List<ReplyDTO> getList(Long boardId, String memberId) {
+    //     BoardEntity boardEntity = selectBoardEntity(boardId); // boardEntity
+    //     List<ReplyEntity> replyEntities = replyRepository.findByBoardEntity(boardEntity); // boardEntity의 댓글 목록 가져옴
+
+    //     return replyEntities.stream().map(reply ->{
+    //         boolean isLikeByUser = likeRepository.existsByReplyIdAndMemberId(reply.getReplyId(), memberId); // user의 좋아요 여부 
+    //         return ReplyDTO.builder()
+    //             .replyId(reply.getReplyId())
+    //             .boardId(reply.getBoardEntity().getBoardId())
+    //             .parentReplyId((reply.getParentReplyId()))
+    //             .memberId(reply.getMemberEntity().getMemberId())
+    //             .content(reply.getContent())
+    //             .createDate(reply.getCreateDate())
+    //             .updateDate(reply.getUpdateDate())
+    //             .likeCount(reply.getLikeCount())
+    //             .likeByUser(isLikeByUser)
+    //             .build();
+    //     }).collect(Collectors.toList());
+    // }
+
     /**
-     * boardId에 대한 댓글DTO 목록 반환 (특정 memberId의 댓글 좋아요 여부(likeByUser)도 포함시킴)
+     * boardId에 대한 댓글DTO 목록 반환 (likeByUser, childReplies 세팅하는 로직 포함)
      * @param boardId
      * @param memberId
      * @return
      */
     public List<ReplyDTO> getList(Long boardId, String memberId) {
-        BoardEntity boardEntity = selectBoardEntity(boardId); // boardEntity
+        BoardEntity boardEntity = selectBoardEntity(boardId);   // BoardEntity
         List<ReplyEntity> replyEntities = replyRepository.findByBoardEntity(boardEntity); // boardEntity의 댓글 목록 가져옴
 
-        return replyEntities.stream().map(reply ->{
-            boolean isLikeByUser = likeRepository.existsByReplyIdAndMemberId(reply.getReplyId(), memberId); // user의 좋아요 여부 
-            return ReplyDTO.builder()
-                .replyId(reply.getReplyId())
-                .boardId(reply.getBoardEntity().getBoardId())
-                .parentReplyId((reply.getParentReplyId()))
-                .memberId(reply.getMemberEntity().getMemberId())
-                .content(reply.getContent())
-                .createDate(reply.getCreateDate())
-                .updateDate(reply.getUpdateDate())
-                .likeCount(reply.getLikeCount())
-                .likeByUser(isLikeByUser)
-                .build();
-        }).collect(Collectors.toList());
+        // 댓글 ID를 키로 하고, 대댓글들을 리스트로 갖는 맵 생성
+        Map<Long, List<ReplyDTO>> replyTree = new HashMap<>();
 
+        // 모든 ReplyDTO를 트리 구조로 생성
+        List<ReplyDTO> rootReplies = new ArrayList<>();
+
+        for (ReplyEntity replyEntity : replyEntities) {
+            // 로그인한 사용자의 죻아요 여부 확인
+            boolean isLikeByUser = likeRepository.existsByReplyIdAndMemberId(replyEntity.getReplyId(), memberId);
+            ReplyDTO replyDTO = ReplyDTO.builder()
+                                        .replyId(replyEntity.getReplyId())
+                                        .boardId(replyEntity.getBoardEntity().getBoardId())
+                                        .parentReplyId((replyEntity.getParentReplyId()))
+                                        .memberId(replyEntity.getMemberEntity().getMemberId())
+                                        .content(replyEntity.getContent())
+                                        .createDate(replyEntity.getCreateDate())
+                                        .updateDate(replyEntity.getUpdateDate())
+                                        .likeCount(replyEntity.getLikeCount())
+                                        .likeByUser(isLikeByUser)
+                                        .build();
+            // 부모 댓글이 없는 경우 rootReplies에 추가
+            if (replyEntity.getParentReplyId()==null) {
+                rootReplies.add(replyDTO);
+            }else{
+                // 부모 댓글이 있는 경우 해당 부모의 대댓글 리스트에 추가
+                replyTree.computeIfAbsent(replyEntity.getParentReplyId(), k-> new ArrayList<>()).add(replyDTO);
+            }
+        }
+
+        // 이제 부모 댓글에 각 대댓글을 트리구조로 추가
+        for(ReplyDTO replyDTO: rootReplies){
+            addChildReplies(replyDTO, replyTree);
+        }
+
+        return rootReplies; // 최상위 댓글 (대댓글을 포함된 트리구조 반환)
+    }
+
+    /**
+     * parentDTO의 childReplies 즉, 대댓글을 추가하는 함수
+     * @param parentDTO
+     * @param replyTree
+     */
+    private void addChildReplies(ReplyDTO parentDTO, Map<Long, List<ReplyDTO>>replyTree){
+        List<ReplyDTO> childReplies = replyTree.get(parentDTO.getReplyId());
+        if (childReplies.size() != 0) {
+            parentDTO.setChildReplies(childReplies); // 대댓글 목록 세팅
+            // for(ReplyDTO child : childReplies){
+            //     addChildReplies(child, replyTree); // 재귀 호출 (대댓글의 댓글까지 구현하고자 하려면 사용!)
+            // }
+        }
     }
 
     // ====================== 댓글 등록 =====================
