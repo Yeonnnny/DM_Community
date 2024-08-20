@@ -30,7 +30,7 @@ import lombok.ToString;
 @ToString
 @Builder
 @Entity
-@Table(name = "job_board_reported")
+@Table(name = "board_report")
 public class BoardReportEntity {
     @Id
     @Column(name = "report_id")
