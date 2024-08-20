@@ -25,7 +25,7 @@ public interface JobBoardRepository extends JpaRepository<JobBoardEntity, Long>{
                                                                                 Pageable pageable); 
 
         // 카테고리에 해당하는 (신고당하지 않은) BoardListDTOs 반환 (최신순)
-        @Query("SELECT new com.example.community.dto.display.BoardListDTO(b.boardId, b.memberEntity.memberId, b.memberGroup, b.title, b.hitCount, b.likeCount, b.createDate, j.deadline, j.limitNumber, j.currentNumber) " +
+        @Query("SELECT new com.example.community.dto.combine.BoardListDTO(b.boardId, b.memberEntity.memberId, b.memberGroup, b.title, b.hitCount, b.likeCount, b.createDate, j.deadline, j.limitNumber, j.currentNumber) " +
                 "FROM JobBoardEntity j " +
                 "JOIN j.boardEntity b " +
                 "WHERE b.category = :category " +

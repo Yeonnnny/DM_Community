@@ -16,13 +16,13 @@ public interface BoardRepository extends JpaRepository<BoardEntity, Long> {
         // 카테고리가 group이고, 전달받은 memberGroup에 해당하는 (신고당하지 않은) 게시글 리스트 반환 (최신순)
         @Query("SELECT b FROM BoardEntity b WHERE " +
                 "b.category = 'group' AND " +
-                "b.memberGroup =: userGroup AND " +
+                "b.memberGroup = :userGroup AND " +
                 "b.reported = false AND " +
                 "LOWER(b.title) LIKE LOWER(CONCAT('%', :searchWord, '%'))")
         Page<BoardEntity> findByMemberGroupAndNotReportedAndTitleContaining(@Param("userGroup") String userGroup, @Param("searchWord") String searchWord, Pageable pageRequest);
 
         // 기수별 게시판 목록 (반환 타입 : BoardListDTO)
-        @Query("SELECT new com.example.community.dto.display.BoardListDTO(" +
+        @Query("SELECT new com.example.community.dto.combine.BoardListDTO(" +
                 "b.boardId, " +
                 "b.memberEntity.memberId, " +
                 "b.memberGroup, " +
@@ -52,7 +52,7 @@ public interface BoardRepository extends JpaRepository<BoardEntity, Long> {
                 @Param("searchWord") String searchWord, Pageable pageRequest);
 
         // code/project/free/info 게시판 목록(반환 타입 : BoardListDTO)
-        @Query("SELECT new com.example.community.dto.display.BoardListDTO(" +
+        @Query("SELECT new com.example.community.dto.combine.BoardListDTO(" +
                 "b.boardId, " +
                 "b.memberEntity.memberId, " +
                 "b.memberGroup, " +

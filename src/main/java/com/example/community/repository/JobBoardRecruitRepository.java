@@ -13,7 +13,7 @@ public interface JobBoardRecruitRepository extends JpaRepository<JobBoardRecruit
     
     // 해당 recruit 게시글에서 특정 회원이 참여 신청을 했는지 확인하는 쿼리
     @Query("SELECT j FROM JobBoardRecruitEntity j "+
-            "WHERE j.boardEntity = :boardEntity AND j.memberEntity = :memberEntity")
+            "WHERE j.jobBoardEntity.boardEntity = :boardEntity AND j.memberEntity = :memberEntity")
     Optional<JobBoardRecruitEntity> findByBoardAndMember(@Param("boardEntity") BoardEntity boardEntity, @Param("memberEntity") MemberEntity memberEntity);
 
 }
