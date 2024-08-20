@@ -8,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -33,7 +32,7 @@ public class MemberEntity {
     
     // 자식
     // 1) Board
-    @OneToOne(mappedBy = "memberEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "memberEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
     @OrderBy("board_id")
     private List<BoardEntity> jobBoardEntities;
     
