@@ -123,18 +123,20 @@ public class BoardController {
      * @return
      */
     @GetMapping("/board/write")
-    public String writeBoard() {
+    public String writeBoard(@RequestParam(name = "category") BoardCategory category, Model model) {
+        model.addAttribute("category", category);
         return "board/write";
     }
 
-
+    
     /**
      * 게시글 작성 화면 요청 - activity or recruit
      * @param param
      * @return
      */
     @GetMapping("/board/writeActivityOrRecruit")
-    public String writeJobBoard() {
+    public String writeJobBoard(@RequestParam(name = "category") BoardCategory category, Model model) {
+        model.addAttribute("category", category);
         return "board/writeActivityOrRecruit";
     }
     
