@@ -7,17 +7,31 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- Tab title -->
+  <title>게시글 등록</title> 
+
   <!-- Favicon icon-->
   <link rel="shortcut icon" type="image/png" th:href="@{/assets/images/logos/favicon.png}" />
 
   <!-- Core Css -->
   <link rel="stylesheet" th:href="@{/assets/css/styles.css}" />
 
-  <!-- <title>Modernize Bootstrap Admin</title> -->
-  <title>게시글 등록</title>  <!--탭 이름-->
+  <!-- CKEditor5 -->
+  <link rel="stylesheet" th:href="@{/ckeditor5/style.css}">
+  <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.css">
+
+  
+  <!-- Ajax -->
+	<script th:src="@{/script/jquery-3.7.1.min.js}"></script>
+  <!-- board write javascript file -->
+  <script th:src="@{/script/boardWrite.js}"></script>
+
+
 </head>
 
 <body class="link-sidebar">
+  <!-- <input type="hidden" id="memberId" th:value="${#authentication.name}"> -->
+  <input type="hidden" id="memberId" value="doyeon">
   <!-- Preloader -->
   <div class="preloader">
     <img th:src="@{/assets/images/logos/favicon.png}" alt="loader" class="lds-ripple img-fluid" />
@@ -30,14 +44,14 @@
             <div class="card-body px-4 py-3">
               <div class="row align-items-center">
                 <div class="col-9">
-                  <h4 class="fw-semibold mb-8"> 게시글 등록 </h4>
+                  <h4 class="fw-semibold mb-8"> 게시글 등록 </h4> <!-- 제목-->
                   <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                       <li class="breadcrumb-item">
                         <a class="text-muted text-decoration-none" th:href="@{/}">Home</a>
                       </li>
-                      <li class="breadcrumb-item" aria-current="page" th:href="@{/board/list(category)}"></li>
-                      <li class="breadcrumb-item" aria-current="page">Board</li>
+                      <li class="breadcrumb-item" aria-current="page" th:href="@{/board/list(category=${category})}">[[${category}]]</li>
+                      <!-- <li class="breadcrumb-item" aria-current="page">Board</li> -->
                     </ol>
                   </nav>
                 </div>
@@ -53,7 +67,7 @@
           <div class="row">
             <div class="col-12">
               <!-- start Project Assinging -->
-              <div class="card">
+              <!-- <div class="card">
                 <div class="card-body">
                   <h4 class="card-title">게시글 등록 </h4>
                   <p class="card-subtitle mb-0">
@@ -62,77 +76,35 @@
                     </mark> class in
                     the form with form styling.
                   </p>
-                </div>
-                <form class="form-horizontal r-separator">
+                </div> -->
+                <form class="form-horizontal r-separator" id="writeForm" th:action="@{/board/write}" method="post" enctype="multipart/form-data">
                   <div class="card-body">
-                    <h5>Personal Info</h5>
+                    <!-- <h5>Write</h5> -->
                     <div class="form-group mb-0">
                       <div class="row align-items-center">
-                        <label for="inputText1" class="col-3 text-end  col-form-label">First Name</label>
+                        <label for="inputText1" class="col-3 text-end  col-form-label">Category</label>
                         <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText1" placeholder="First Name Here" />
+                          <input type="text" name="category" class="form-control" id="inputText1" th:value="${category}" readonly/>
                         </div>
                       </div>
                     </div>
                     <div class="form-group mb-0">
                       <div class="row align-items-center">
-                        <label for="inputText2" class="col-3 text-end  col-form-label">Last Name</label>
+                        <label for="inputText2" class="col-3 text-end  col-form-label">Title</label>
                         <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText2" placeholder="Last Name Here" />
+                          <input type="text" name="title" class="form-control" id="inputText2" placeholder="글 제목을 입력해주세요" />
                         </div>
                       </div>
                     </div>
                     <div class="form-group mb-0">
                       <div class="row align-items-center">
-                        <label for="inputEmail1" class="col-3 text-end  col-form-label">Email</label>
+                        <label for="inputEmail1" class="col-3 text-end  col-form-label">Content</label>
                         <div class="col-9 border-start pb-2 pt-2">
-                          <input type="email" class="form-control" id="inputEmail1" placeholder="Email Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText3" class="col-3 text-end  col-form-label">Contact No</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText3" placeholder="Contact No Here" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card-body text-bg-light">
-                    <h4 class="card-title mt-2 pb-3">Requirements</h4>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText4" class="col-3 text-end  col-form-label">Company</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText4" placeholder="Company Name Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputSelect1" class="col-3 text-end  col-form-label">Interested
-                          In</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <select class="form-select" id="inputSelect1">
-                            <option>Choose Your Option</option>
-                            <option>Desiging</option>
-                            <option>Development</option>
-                            <option>Videography</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputSelect2" class="col-3 text-end  col-form-label">Budget</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <select class="form-select" id="inputSelect2">
-                            <option>Choose Your Option</option>
-                            <option>Less then $5000</option>
-                            <option>$5000 - $10000</option>
-                            <option>$10000 - $20000</option>
-                          </select>
+                          <!--CKEditor 들어갈 자리-->
+                          <div class="editor-container editor-container_classic-editor" id="editor-container">
+                            <div class="editor-container__editor"><div id="editor"></div></div>
+                          </div>
+                          <!-- <input type="email" class="form-control" id="inputEmail1" placeholder="Email Here" />  -->
                         </div>
                       </div>
                     </div>
@@ -144,318 +116,34 @@
                           <div class="input-group">
                             <span class="input-group-text">Upload</span>
                             <div class="custom-file">
-                              <input type="file" class="form-control" id="inputGroupFile01" />
+                              <input type="file" name="uploadFile" class="form-control" id="inputGroupFile01"/>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText5" class="col-3 text-end  col-form-label">About
-                          Project</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText5" placeholder="About Project Here" />
-                        </div>
-                      </div>
-                    </div>
                   </div>
+                  <!-- <input type="hidden" name="memberId" th:value="${#authentication.name}"> -->
+                  <input type="hidden" name="memberId" value="doyeon">
+                  <input type="hidden" id="memberGroup" name="memberGroup" > <!--ajax-->
+                  <input type="hidden" name="content"> <!--ckEditor에서 내용 읽어오는 작업->script에서 처리-->
                   <div class="card-body">
-                    <div class="form-group mb-0 text-end">
-                      <button type="submit" class="btn btn-primary">
-                        Save
-                      </button>
-                      <button type="submit" class="btn bg-danger-subtle text-danger ms-6">
+                    <div class="form-group mb-0 text-end"> <!-- 전송/취소/초기화 버튼-->
+                      <button type="button" id="submitBtn" class="btn btn-primary">Save</button>
+                      <input type="reset" placeholder="Reset" class="btn bg-info-subtle text-info ms-6"/>               
+                      <button type="button" id="cancelBtn" class="btn bg-danger-subtle text-danger ms-6"><a th:href="@{/board/list(category=${category})}">Cancel</a></button>
+                      <!-- <button type="button" class="btn bg-danger-subtle text-danger ms-6">
                         Cancel
-                      </button>
+                      </button> -->
                     </div>
                   </div>
                 </form>
               </div>
               <!-- end Project Assinging -->
-            </div>
-            <div class="col-12">
-              <!-- start Employee Profile -->
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Employee Profile</h4>
-                  <p class="card-subtitle mb-0">
-                    To use add <mark>
-                      <code>.r-separator</code>
-                    </mark> class in
-                    the form with form styling.
-                  </p>
-                </div>
-                <form class="form-horizontal r-separator">
-                  <div class="card-body">
-                    <div class="row">
-                      <div class="col-sm-12 col-lg-6">
-                        <div class="form-group row align-items-center mb-0">
-                          <label for="inputText6" class="col-3 text-end  col-form-label">First
-                            Name</label>
-                          <div class="col-9 border-start pt-2 pb-2">
-                            <input type="text" class="form-control" id="inputText6" placeholder="First Name Here" />
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-sm-12 col-lg-6">
-                        <div class="form-group row align-items-center mb-0">
-                          <label for="inputText7" class="col-3 text-end  col-form-label">Last Name</label>
-                          <div class="col-9 border-start pt-2 pb-2">
-                            <input type="text" class="form-control" id="inputText7" placeholder="Last Name Here" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <hr class="m-0" />
-                    <div class="row">
-                      <div class="col-sm-12 col-lg-6">
-                        <div class="form-group row align-items-center mb-0">
-                          <label for="inputEmail7" class="col-3 text-end  col-form-label">Username</label>
-                          <div class="col-9 border-start pb-2 pt-2">
-                            <input type="email" class="form-control" id="inputEmail7" placeholder="Username Here" />
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-sm-12 col-lg-6">
-                        <div class="form-group row align-items-center mb-0">
-                          <label for="inputText19" class="col-3 text-end  col-form-label">Nick Name</label>
-                          <div class="col-9 border-start pb-2 pt-2">
-                            <input type="text" class="form-control" id="inputText19" placeholder="Nick Name Here" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card-body text-bg-light">
-                    <h4 class="card-title mt-2 pb-3">
-                      Contact Info &amp; Bio
-                    </h4>
-                    <div class="row">
-                      <div class="col-sm-12 col-lg-6">
-                        <div class="form-group row align-items-center mb-0">
-                          <label for="inputEmail2" class="col-3 text-end  col-form-label">Email</label>
-                          <div class="col-9 border-start pt-2 pb-2">
-                            <input type="email" class="form-control" id="inputEmail2" placeholder="Email Here" />
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-sm-12 col-lg-6">
-                        <div class="form-group row align-items-center mb-0">
-                          <label for="inputText8" class="col-3 text-end  col-form-label">Website</label>
-                          <div class="col-9 border-start pt-2 pb-2">
-                            <input type="text" class="form-control" id="inputText8" placeholder="http://" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <hr class="m-0" />
-                    <div class="row">
-                      <div class="col-sm-12 col-lg-6">
-                        <div class="form-group row align-items-center mb-0">
-                          <label for="inputText9" class="col-3 text-end  col-form-label">Contact
-                            No</label>
-                          <div class="col-9 border-start pt-2 pb-2">
-                            <input type="text" class="form-control" id="inputText9" placeholder="Contact No Here" />
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-sm-12 col-lg-6">
-                        <div class="form-group row align-items-center mb-0">
-                          <label for="inputText10" class="col-3 text-end  col-form-label">Bio</label>
-                          <div class="col-9 border-start pt-2 pb-2">
-                            <input type="text" class="form-control" id="inputText10" placeholder="Bio Here" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card-body">
-                    <div class="form-group mb-0 text-end">
-                      <button type="submit" class="btn btn-primary">
-                        Save
-                      </button>
-                      <button type="submit" class="btn bg-danger-subtle text-danger ms-6">
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-              <!-- end Employee Profile -->
-            </div>
-            <div class="col-12">
-              <!-- start Employee Timing -->
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Employee Timing</h4>
-                  <p class="card-subtitle mb-0">
-                    To use add <mark>
-                      <code>.r-separator</code>
-                    </mark> class in
-                    the form with form styling.
-                  </p>
-                </div>
-                <form class="form-horizontal r-separator">
-                  <div class="card-body">
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText11" class="col-3 text-end  col-form-label">Employee
-                          Name</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText11" placeholder="Employee Name Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText12" class="col-3 text-end  col-form-label">Project
-                          Name</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText12" placeholder="Project Name Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputDate1" class="col-3 text-end  col-form-label">Date</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="date" class="form-control" id="inputDate1" placeholder="Date Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText13" class="col-3 text-end  col-form-label">Rate Per
-                          Hour</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText13" placeholder="Rate Per Hour Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputTime1" class="col-3 text-end  col-form-label">Start Time</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="time" class="form-control" id="inputTime1" placeholder="Start Time Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputTime2" class="col-3 text-end  col-form-label">End Time</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="time" class="form-control" id="inputTime2" placeholder="End Time Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText14" class="col-3 text-end  col-form-label">Notes</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText14" placeholder="Notes Here" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="p-3 border-top">
-                    <div class="form-group mb-0 text-end">
-                      <button type="submit" class="btn btn-primary">
-                        Save
-                      </button>
-                      <button type="submit" class="btn bg-danger-subtle text-danger ms-6">
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-              <!-- end Employee Timing -->
-            </div>
-            <div class="col-12">
-              <!-- start Event Registration -->
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Event Registration</h4>
-                  <p class="card-subtitle mb-0">
-                    To use add <mark>
-                      <code>.r-separator</code>
-                    </mark> class in
-                    the form with form styling.
-                  </p>
-                </div>
-                <form class="form-horizontal r-separator">
-                  <div class="card-body">
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText15" class="col-3 text-end  col-form-label">Full Name</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText15" placeholder="Full Name Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText16" class="col-3 text-end  col-form-label">Title</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText16" placeholder="Title Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText17" class="col-3 text-end  col-form-label">Company</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText17" placeholder="Company Name Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputEmail4" class="col-3 text-end  col-form-label">Email</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="email" class="form-control" id="inputEmail4" placeholder="Email Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="inputText18" class="col-3 text-end  col-form-label">Contact No</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <input type="text" class="form-control" id="inputText18" placeholder="Contact No Here" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group mb-0">
-                      <div class="row align-items-center">
-                        <label for="customControlValidation2" class="col-3 text-end  col-form-label">Existing
-                          Customer</label>
-                        <div class="col-9 border-start pb-2 pt-2">
-                          <div class="form-check">
-                            <label class="form-check-label" for="customControlValidation2">Yes</label>
-                            <input type="radio" class="form-check-input" id="customControlValidation2" name="radio-stacked" required />
-                          </div>
-                          <div class="form-check">
-                            <label class="form-check-label" for="customControlValidation3">No</label>
-                            <input type="radio" class="form-check-input" id="customControlValidation3" name="radio-stacked" required />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="p-3 border-top">
-                    <div class="form-group mb-0 text-end">
-                      <button type="submit" class="btn btn-primary">
-                        Save
-                      </button>
-                      <button type="submit" class="btn bg-danger-subtle text-danger ms-6">
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-              <!-- end Event Registration -->
+              <div class="col-12"></div>
+              <div class="col-12"></div>
+              <div class="col-12"></div>
+              <div class="col-12"></div>
             </div>
           </div>
           <!-- End Row -->
@@ -626,6 +314,18 @@
 
   <!-- solar icons -->
   <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+  <!-- CKEditor5 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.js",
+      "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/43.0.0/"
+    }
+  }
+  </script>
+  <script type="module" th:src="@{/ckeditor5/main.js}"></script>
+
 </body>
 
 </html>
